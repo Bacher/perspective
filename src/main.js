@@ -61,6 +61,10 @@ function draw() {
     const mTr = Matrix.translate(20, 0, 200);
     const mRot = Matrix.rotate(xAngle, 1, 0, 0);
 
+    console.log('per', mPer.m);
+    console.log('tr', mTr.m);
+    console.log('rot', mRot.m);
+
     // const mView = mPer;
     // const mView = mRot.multiply(mPer);
     // const mView = mPer.multiply(mRot);
