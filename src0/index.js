@@ -2,7 +2,7 @@ const { vec3, vec4, mat3, mat4 } = glMatrix;
 
 const canvas = document.getElementById('canvas');
 
-canvas.width = 400;
+canvas.width = 600;
 canvas.height = 400;
 
 let xAngle = 9;
@@ -51,8 +51,8 @@ function draw() {
   ctx.strokeStyle = '#ddd';
   ctx.fillStyle = '#fff';
 
-  ctx.fillRect(0, 0, 400, 400);
-  ctx.translate(200, 200);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.translate(canvas.width / 2, canvas.height / 2);
 
   ctx.beginPath();
 
@@ -65,10 +65,16 @@ function draw() {
     const mRot = mat4.create();
 
     // const mPer = Matrix.perspective(2, 1, 0.1, 1000);
-    mat4.perspective(mPer, (2 * Math.PI) / 180, 1, 0.1, 1000);
+    mat4.perspective(
+      mPer,
+      (75 * Math.PI) / 180,
+      canvas.width / canvas.height,
+      0.1,
+      200
+    );
 
     // const mTr = Matrix.translate(20, 0, 200);
-    mat4.fromTranslation(mTr, vec3.fromValues(20, 0, 200));
+    mat4.fromTranslation(mTr, vec3.fromValues(20 - deltaX, 0 - deltaY, 600));
     // const mRot = Matrix.rotate(xAngle, 1, 0, 0);
     mat4.rotateX(mRot, mRot, (xAngle * Math.PI) / 180);
 
@@ -113,8 +119,8 @@ function draw() {
       Number.isFinite(to1.x) &&
       Number.isFinite(to1.y)
     ) {
-      ctx.moveTo(from1.x, from1.y);
-      ctx.lineTo(to1.x, to1.y);
+      ctx.moveTo(from1.x * canvas.width, from1.y * canvas.height);
+      ctx.lineTo(to1.x * canvas.width, to1.y * canvas.height);
     }
   }
 
@@ -156,13 +162,13 @@ function perspect(point) {
   };
 }
 
-// window.addEventListener('mousemove', e => {
-//     deltaX += e.movementX;
-//     deltaY += e.movementY;
-// });
+window.addEventListener('mousemove', e => {
+  deltaX += e.movementX;
+  deltaY += e.movementY;
+});
 
 draw();
 
 // setInterval(() => {
-//     angle += 1;
+//   xAngle += 9;
 // }, 16);
