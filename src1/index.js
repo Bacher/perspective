@@ -60,6 +60,14 @@ const characters = [
     color: '#0f0',
     img: createSprite('character'),
   },
+  {
+    pos: {
+      x: 20,
+      y: -30,
+      z: 0,
+    },
+    img: createSprite('tree'),
+  },
 ];
 
 const redDots = [
@@ -93,18 +101,21 @@ function draw() {
 
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const width = 300;
+  const width = 400;
   const widthD2 = width / 2;
 
-  const height = 200;
+  const height = 300;
   const heightD2 = height / 2;
 
-  for (let x = -widthD2; x <= widthD2; x += 10) {
-    drawLine({ x, y: -heightD2, z: 0 }, { x, y: heightD2, z: 0 });
+  const dX = Math.round(deltaX / 10) * 10;
+  const dY = Math.round(deltaY / 10) * 10;
+
+  for (let x = dX - widthD2; x <= dX + widthD2; x += 10) {
+    drawLine({ x, y: dY - heightD2, z: 0 }, { x, y: dY + heightD2, z: 0 });
   }
 
-  for (let y = -heightD2; y <= heightD2; y += 10) {
-    drawLine({ x: -widthD2, y, z: 0 }, { x: widthD2, y, z: 0 });
+  for (let y = dY - heightD2; y <= dY + heightD2; y += 10) {
+    drawLine({ x: dX - widthD2, y, z: 0 }, { x: dX + widthD2, y, z: 0 });
   }
 
   for (const pos of redDots) {
@@ -176,6 +187,8 @@ function draw() {
 //   applyMatrix();
 // });
 
+let moveInterval;
+
 window.addEventListener('click', e => {
   const p = { x: e.clientX, y: e.clientY };
 
@@ -205,11 +218,17 @@ window.addEventListener('click', e => {
     2
   );
 
+  const curX = deltaX;
+  const curY = deltaY;
+
+  const dX = x - curX;
+  const dY = y - curY;
   let i = 0;
 
-  const moveInterval = setInterval(() => {
-    deltaX = (x * i) / 100;
-    deltaY = (y * i) / 100;
+  clearInterval(moveInterval);
+  moveInterval = setInterval(() => {
+    deltaX = curX + (dX * i) / 100;
+    deltaY = curY + (dY * i) / 100;
     applyMatrix();
     i++;
 
