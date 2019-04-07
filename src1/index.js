@@ -33,15 +33,15 @@ const characters = [
     color: '#f00',
     img: createSprite('character'),
   },
-  // {
-  //   pos: {
-  //     x: 0.1441,
-  //     y: -92.69,
-  //     z: 0,
-  //   },
-  //   color: '#0f0',
-  //   img: createSprite('character'),
-  // },
+  {
+    pos: {
+      x: -273,
+      y: -187,
+      z: 0,
+    },
+    color: '#0f0',
+    img: createSprite('character'),
+  },
 ];
 
 const redDots = [
@@ -84,10 +84,10 @@ function draw() {
   const height = 200;
   const heightD2 = height / 2;
 
-  for (let x = -widthD2; x <= widthD2; x += 10) {
-    drawLine({ x, y: -heightD2, z: 0 }, { x, y: heightD2, z: 0 });
-    break;
-  }
+  // for (let x = -widthD2; x <= widthD2; x += 10) {
+  //   drawLine({ x, y: -heightD2, z: 0 }, { x, y: heightD2, z: 0 });
+  //   break;
+  // }
 
   for (let y = -heightD2; y <= heightD2; y += 10) {
     drawLine({ x: -widthD2, y, z: 0 }, { x: widthD2, y, z: 0 });
@@ -116,8 +116,6 @@ function draw() {
       ctx.beginPath();
       ctx.arc(p1n.x, p1n.y, 5, 0, 2 * Math.PI);
       ctx.stroke();
-
-      console.log('INPUT:', p1);
     }
   }
 
