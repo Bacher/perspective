@@ -5,12 +5,15 @@ const canvas = document.getElementById('canvas');
 canvas.width = 600;
 canvas.height = 400;
 
+const isPers = false;
+
 let xAngle = 18;
 
 let deltaX = 0;
 let deltaY = 0;
 
 const mTr = mat4.create();
+const mCam = mat4.create();
 const mRot = mat4.create();
 
 const mPer = mat4.perspective(
@@ -20,6 +23,8 @@ const mPer = mat4.perspective(
   0.1,
   500
 );
+
+mat4.fromScaling(mCam, [-1, 1, 1]);
 
 mat4.rotateX(mRot, mRot, (xAngle * Math.PI) / 180);
 
@@ -74,7 +79,6 @@ function draw() {
   ctx.fillStyle = '#fff';
 
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.translate(canvas.width / 2, canvas.height / 2);
 
   mat4.fromTranslation(mTr, vec3.fromValues(-deltaX, -deltaY, 300));
 
@@ -84,14 +88,12 @@ function draw() {
   const height = 200;
   const heightD2 = height / 2;
 
-  // for (let x = -widthD2; x <= widthD2; x += 10) {
-  //   drawLine({ x, y: -heightD2, z: 0 }, { x, y: heightD2, z: 0 });
-  //   break;
-  // }
+  for (let x = -widthD2; x <= widthD2; x += 10) {
+    drawLine({ x, y: -heightD2, z: 0 }, { x, y: heightD2, z: 0 });
+  }
 
   for (let y = -heightD2; y <= heightD2; y += 10) {
     drawLine({ x: -widthD2, y, z: 0 }, { x: widthD2, y, z: 0 });
-    break;
   }
 
   for (const pos of redDots) {
@@ -136,19 +138,18 @@ function draw() {
   function func({ x, y, z }) {
     let res = vec3.fromValues(x, y, z || 0);
 
-    const isPers = true;
-
     // const mView = mPer.multiply(mTr).multiply(mRot);
     vec3.transformMat4(res, res, mRot);
     vec3.transformMat4(res, res, mTr);
+    vec3.transformMat4(res, res, mCam);
 
     if (isPers) {
       vec3.transformMat4(res, res, mPer);
     }
 
     return {
-      x: res[0] * (isPers ? canvas.width : 1),
-      y: res[1] * (isPers ? canvas.height : 1),
+      x: res[0] * (isPers ? canvas.width : 1) + canvas.width / 2,
+      y: res[1] * (isPers ? canvas.height : 1) + canvas.height / 2,
       z: res[2],
     };
   }
@@ -198,10 +199,21 @@ function screenCoordsToWorld(p) {
   const mTrI = mat4.create();
   mat4.fromTranslation(mTr, vec3.fromValues(-deltaX, -deltaY, 300));
   mat4.invert(mTrI, mTr);
+  const mCamI = mat4.create();
+  mat4.invert(mCamI, mCam);
 
-  const res = vec3.fromValues(p.x / canvas.width, p.y / canvas.height, p.z);
+  const r = {
+    x: (p.x - canvas.width / 2) / (isPers ? canvas.width : 1),
+    y: (p.y - canvas.height / 2) / (isPers ? canvas.height : 1),
+    z: p.z,
+  };
 
-  vec3.transformMat4(res, res, mPerI);
+  const res = vec3.fromValues(r.x, r.y, r.z);
+
+  if (isPers) {
+    vec3.transformMat4(res, res, mPerI);
+  }
+  vec3.transformMat4(res, res, mCamI);
   vec3.transformMat4(res, res, mTrI);
   vec3.transformMat4(res, res, mRotI);
 
