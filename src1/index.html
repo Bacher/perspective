@@ -14,11 +14,16 @@
     </style>
   </head>
   <body>
-    <div id="container" style="position: relative; overflow: hidden;">
-      <canvas id="canvas" style="background: #fff;"></canvas>
-      <div id="sprites"></div>
+    <div id="container" style="position: relative; overflow: hidden; overflow-y: scroll; height: 400px">
+      <div style="position: fixed;">
+        <canvas id="canvas" style="background: #fff;"></canvas>
+        <div id="sprites"></div>
+      </div>
+      <div id="scrollbox" style="height: 1000px"></div>
     </div>
-    <div style="position: absolute; top: 0; left: 600px; padding: 10px; color: #fff;">
+    <div
+      style="position: absolute; top: 0; left: 600px; padding: 10px; color: #fff;"
+    >
       <pre id="info"></pre>
     </div>
     <script src="../node_modules/gl-matrix/gl-matrix.js"></script>

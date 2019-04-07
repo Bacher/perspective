@@ -1,32 +1,45 @@
 const { vec3, vec4, mat3, mat4 } = glMatrix;
 
 const canvas = document.getElementById('canvas');
+const container = document.getElementById('container');
 
 canvas.width = 600;
 canvas.height = 400;
 
-const isPers = false;
+const isPers = true;
 
-let xAngle = 18;
-
+let xAngle = 0;
 let deltaX = 0;
 let deltaY = 0;
+let scroll = 0;
 
 const mTr = mat4.create();
 const mCam = mat4.create();
-const mRot = mat4.create();
+let mRot = mat4.create();
+let mPer = mat4.create();
 
-const mPer = mat4.perspective(
-  mat4.create(),
-  (75 * Math.PI) / 180,
-  canvas.width / canvas.height,
-  0.1,
-  500
-);
+function applyMatrix() {
+  xAngle = 20 + 20 * scroll;
 
-mat4.fromScaling(mCam, [-1, 1, 1]);
+  mat4.perspective(
+    mPer,
+    (75 * Math.PI) / 180,
+    canvas.width / canvas.height,
+    0.1,
+    500
+  );
 
-mat4.rotateX(mRot, mRot, (xAngle * Math.PI) / 180);
+  mat4.fromScaling(mCam, [-1, 1, 1]);
+
+  mat4.fromXRotation(mRot, (xAngle * Math.PI) / 180);
+
+  mat4.fromTranslation(
+    mTr,
+    vec3.fromValues(-deltaX, -deltaY, 300 + 100 * scroll)
+  );
+}
+
+applyMatrix();
 
 const characters = [
   {
@@ -51,8 +64,8 @@ const characters = [
 
 const redDots = [
   {
-    x: -273.67,
-    y: 187.12,
+    x: 0,
+    y: 0,
     z: 0,
   },
   {
@@ -79,8 +92,6 @@ function draw() {
   ctx.fillStyle = '#fff';
 
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  mat4.fromTranslation(mTr, vec3.fromValues(-deltaX, -deltaY, 300));
 
   const width = 300;
   const widthD2 = width / 2;
@@ -162,6 +173,7 @@ function draw() {
 // window.addEventListener('mousemove', e => {
 //   deltaX += e.movementX;
 //   deltaY += e.movementY;
+//   applyMatrix();
 // });
 
 window.addEventListener('mousemove', e => {
@@ -179,13 +191,16 @@ window.addEventListener('mousemove', e => {
   const x = zValue * l + r1.x;
   const y = zValue * m + r1.y;
 
-  characters[0].pos.x = x;
-  characters[0].pos.y = y;
+  redDots[0].x = x;
+  redDots[0].y = y;
 
-  // document.getElementById('info').innerText = JSON.stringify(point, null, 2);
+  // characters[0].pos.x = x;
+  // characters[0].pos.y = y;
+
   document.getElementById('info').innerText = JSON.stringify(
-    //[r1, r2],
-    { x, y },
+    {
+      xy: { x, y },
+    },
     null,
     2
   );
@@ -197,7 +212,6 @@ function screenCoordsToWorld(p) {
   const mRotI = mat4.create();
   mat4.invert(mRotI, mRot);
   const mTrI = mat4.create();
-  mat4.fromTranslation(mTr, vec3.fromValues(-deltaX, -deltaY, 300));
   mat4.invert(mTrI, mTr);
   const mCamI = mat4.create();
   mat4.invert(mCamI, mCam);
@@ -229,3 +243,9 @@ draw();
 // setInterval(() => {
 //   xAngle += 9;
 // }, 16);
+
+container.addEventListener('scroll', () => {
+  scroll = container.scrollTop / 600;
+
+  applyMatrix();
+});
