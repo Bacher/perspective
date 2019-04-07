@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <style>
+      body {
+        margin: 0;
+        background: #000;
+      }
+      pre {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container" style="position: relative; overflow: hidden;">
+      <canvas id="canvas" style="background: #fff;"></canvas>
+      <div id="sprites"></div>
+    </div>
+    <div style="position: absolute; top: 0; left: 600px; padding: 10px; color: #fff;">
+      <pre id="info"></pre>
+    </div>
+    <script src="../node_modules/gl-matrix/gl-matrix.js"></script>
+    <script src="./index.js"></script>
+  </body>
+</html>
