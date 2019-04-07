@@ -41,15 +41,32 @@ function applyMatrix() {
 
 applyMatrix();
 
-const characters = [
+const objects = [
   {
     pos: {
       x: 0,
       y: 0,
       z: 0,
     },
-    color: '#f00',
-    img: createSprite('character'),
+    fixed: true,
+    center: {
+      x: 16,
+      y: 24,
+    },
+    img: createSprite('man'),
+  },
+  {
+    pos: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+    center: {
+      x: 16,
+      y: 24,
+    },
+    hidden: true,
+    img: createSprite('flag'),
   },
   {
     pos: {
@@ -57,7 +74,6 @@ const characters = [
       y: -187,
       z: 0,
     },
-    color: '#0f0',
     img: createSprite('character'),
   },
   {
@@ -67,6 +83,14 @@ const characters = [
       z: 0,
     },
     img: createSprite('tree'),
+  },
+  {
+    pos: {
+      x: 50,
+      y: 30,
+      z: 0,
+    },
+    img: createSprite('home'),
   },
 ];
 
@@ -151,18 +175,29 @@ function draw() {
     ctx.fill();
   }
 
-  for (const char of characters) {
-    const pos = func(char.pos);
+  for (const { pos, center, fixed, hidden, img } of objects) {
+    if (hidden) {
+      img.style = 'display: none;';
+      continue;
+    }
 
-    char.img.style = `position: absolute; top: ${pos.y}px; left: ${pos.x}px;`;
+    const p = func(pos, fixed);
+
+    const top = p.y + (center ? -center.y : 0);
+    const left = p.x + (center ? -center.x : 0);
+
+    img.style = `position: absolute; top: ${top}px; left: ${left}px;`;
   }
 
-  function func({ x, y, z }) {
+  function func({ x, y, z }, isFixed) {
     let res = vec3.fromValues(x, y, z || 0);
 
     // const mView = mPer.multiply(mTr).multiply(mRot);
-    vec3.transformMat4(res, res, mRot);
-    vec3.transformMat4(res, res, mTr);
+    if (!isFixed) {
+      vec3.transformMat4(res, res, mRot);
+      vec3.transformMat4(res, res, mTr);
+    }
+
     vec3.transformMat4(res, res, mCam);
 
     if (isPers) {
@@ -204,8 +239,9 @@ window.addEventListener('click', e => {
   const x = zValue * l + r1.x;
   const y = zValue * m + r1.y;
 
-  redDots[0].x = x;
-  redDots[0].y = y;
+  objects[1].pos.x = x;
+  objects[1].pos.y = y;
+  objects[1].hidden = false;
 
   // characters[0].pos.x = x;
   // characters[0].pos.y = y;
@@ -233,6 +269,7 @@ window.addEventListener('click', e => {
     i++;
 
     if (i === 100) {
+      objects[1].hidden = true;
       clearInterval(moveInterval);
     }
   }, 16);
