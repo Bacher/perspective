@@ -176,7 +176,7 @@ function draw() {
 //   applyMatrix();
 // });
 
-window.addEventListener('mousemove', e => {
+window.addEventListener('click', e => {
   const p = { x: e.clientX, y: e.clientY };
 
   const r1 = screenCoordsToWorld({ ...p, z: 0.4 });
@@ -204,6 +204,19 @@ window.addEventListener('mousemove', e => {
     null,
     2
   );
+
+  let i = 0;
+
+  const moveInterval = setInterval(() => {
+    deltaX = (x * i) / 100;
+    deltaY = (y * i) / 100;
+    applyMatrix();
+    i++;
+
+    if (i === 100) {
+      clearInterval(moveInterval);
+    }
+  }, 16);
 });
 
 function screenCoordsToWorld(p) {
