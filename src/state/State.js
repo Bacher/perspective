@@ -1,4 +1,5 @@
 import { vec3, mat4 } from 'gl-matrix';
+import state from './index';
 
 export default class State {
   constructor() {
@@ -174,5 +175,39 @@ export default class State {
 
   spritesUpdated() {
     this.spritesComp.forceUpdate();
+  }
+
+  moveTo({ x, y }) {
+    state.sprites[1].position = { x, y };
+    state.sprites[1].isHidden = false;
+    state.spritesUpdated();
+
+    const curX = this.position.x;
+    const curY = this.position.y;
+
+    const dX = x - curX;
+    const dY = y - curY;
+    let i = 0;
+
+    const distance = Math.sqrt(dX * dX + dY * dY);
+    const steps = distance / 1;
+
+    clearInterval(this.moveInterval);
+    this.moveInterval = setInterval(() => {
+      const sigma = Math.min(1, i / steps);
+
+      this.position.x = curX + dX * sigma;
+      this.position.y = curY + dY * sigma;
+
+      i++;
+
+      if (sigma === 1) {
+        this.sprites[1].isHidden = true;
+        clearInterval(this.moveInterval);
+      }
+
+      this.applyMatrix();
+      this.spritesUpdated();
+    }, 16);
   }
 }

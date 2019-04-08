@@ -9,8 +9,8 @@ import './App.css';
 export default class App extends PureComponent {
   onClick = e => {
     const point = state.project({ x: e.clientX, y: e.clientY });
-    state.sprites[1].position = point;
-    state.spritesUpdated();
+
+    state.moveTo(point);
   };
 
   render() {

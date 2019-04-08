@@ -1,35 +1,24 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 
 import state from '../../state';
 import './Sprite.css';
 
-const offsets = {
-  man: {
-    x: 16,
-    y: 24,
-  },
-  flag: {
-    x: 16,
-    y: 24,
-  },
-};
+const offsets = {};
 
-export default class Sprite extends PureComponent {
-  render() {
-    const { name, position, isFixed } = this.props;
+export default function Sprite({ name, position, isFixed }) {
+  const pos = state.getScreenCoords(position, isFixed);
 
-    const pos = state.getScreenCoords(position, isFixed);
+  const offset = offsets[name] || { x: 16, y: 24 };
 
-    return (
-      <img
-        className="sprite"
-        alt=""
-        src={`assets/sprites/${name}.png`}
-        style={{
-          top: pos.y - offsets[name].y,
-          left: pos.x - offsets[name].x,
-        }}
-      />
-    );
-  }
+  return (
+    <img
+      className="sprite"
+      alt=""
+      src={`assets/sprites/${name}.png`}
+      style={{
+        top: pos.y - offset.y,
+        left: pos.x - offset.x,
+      }}
+    />
+  );
 }

@@ -44,32 +44,6 @@ const objects = [
 //   applyMatrix();
 // });
 
-let moveInterval;
-
-window.addEventListener('click', e => {
-  const p = { x: e.clientX, y: e.clientY };
-
-  const curX = deltaX;
-  const curY = deltaY;
-
-  const dX = x - curX;
-  const dY = y - curY;
-  let i = 0;
-
-  clearInterval(moveInterval);
-  moveInterval = setInterval(() => {
-    deltaX = curX + (dX * i) / 100;
-    deltaY = curY + (dY * i) / 100;
-    applyMatrix();
-    i++;
-
-    if (i === 100) {
-      objects[1].hidden = true;
-      clearInterval(moveInterval);
-    }
-  }, 16);
-});
-
 
 draw();
 

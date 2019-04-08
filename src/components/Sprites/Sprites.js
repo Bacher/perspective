@@ -11,14 +11,16 @@ export default class Sprites extends PureComponent {
   render() {
     return (
       <div>
-        {state.sprites.map(sprite => (
-          <Sprite
-            key={sprite.id}
-            name={sprite.name}
-            position={sprite.position}
-            isFixed={sprite.isFixed}
-          />
-        ))}
+        {state.sprites.map(sprite =>
+          sprite.isHidden ? null : (
+            <Sprite
+              key={sprite.id}
+              name={sprite.name}
+              position={sprite.position}
+              isFixed={sprite.isFixed}
+            />
+          )
+        )}
       </div>
     );
   }
