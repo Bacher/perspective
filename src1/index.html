@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <title>Title</title>
     <style>
+      @keyframes rotate {
+        from {
+          transform: rotate(0);
+        }
+        to {
+          transform: rotate(1turn);
+        }
+      }
+
       body {
         margin: 0;
         background: #000;
@@ -13,6 +22,26 @@
       }
       img:hover {
         outline: 1px solid #f00;
+      }
+      .daytime {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 50px;
+        height: 50px;
+        border: 2px solid #ccc;
+        border-radius: 50%;
+        background: #fff;
+        overflow: hidden;
+      }
+      .daytexture {
+        position: absolute;
+        top: 0;
+        left: -35px;
+        width: 120px;
+        height: 120px;
+        background: url('../assets/textures/daytime.png');
+        animation: rotate 120s linear infinite;
       }
     </style>
   </head>
@@ -24,6 +53,9 @@
       <div style="position: fixed;">
         <canvas id="canvas" style="background: #fff;"></canvas>
         <div id="sprites"></div>
+        <div class="daytime">
+          <div class="daytexture"></div>
+        </div>
       </div>
       <div id="scrollbox" style="height: 1000px"></div>
     </div>
