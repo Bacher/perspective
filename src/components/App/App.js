@@ -1,10 +1,11 @@
 import React, { PureComponent } from 'react';
 
+import './App.css';
+
 import state from '../../state';
 import Canvas from '../Canvas';
 import Sprites from '../Sprites';
-
-import './App.css';
+import UI from '../UI';
 
 export default class App extends PureComponent {
   onClick = e => {
@@ -15,9 +16,18 @@ export default class App extends PureComponent {
 
   render() {
     return (
-      <div className="container" onClick={this.onClick}>
-        <Canvas />
-        <Sprites />
+      <div
+        className="container"
+        style={{
+          width: state.width,
+          height: state.height,
+        }}
+      >
+        <div className="map" onClick={this.onClick}>
+          <Canvas />
+          <Sprites />
+        </div>
+        <UI />
       </div>
     );
   }

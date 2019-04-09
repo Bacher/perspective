@@ -1,0 +1,29 @@
+.status-bar {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 140px;
+
+  &__line {
+    display: flex;
+    align-items: center;
+    margin: 10px;
+  }
+
+  &__bar-identifier {
+    width: 16px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+
+  &__bar {
+    height: 4px;
+    flex-grow: 1;
+    background: #aaa;
+  }
+
+  &__bar-filler {
+    display: block;
+    height: 100%;
+  }
+}
