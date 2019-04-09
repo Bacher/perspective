@@ -28,6 +28,7 @@ export default class UI extends PureComponent {
           isInventoryOpen: !this.state.isInventoryOpen,
         });
         break;
+      default:
     }
   };
 
