@@ -1,4 +1,4 @@
-export default class Connection {
+export default class Client {
   constructor() {
     this.lastId = 0;
 
@@ -7,17 +7,17 @@ export default class Connection {
 
   connect() {
     return new Promise((resolve, reject) => {
-      this.socket = new WebSocket('ws://localhost:8080');
+      this.ws = new WebSocket('ws://localhost:8080');
 
-      this.socket.addEventListener('open', () => {
+      this.ws.addEventListener('open', () => {
         resolve();
       });
 
-      this.socket.addEventListener('error', err => {
+      this.ws.addEventListener('error', err => {
         reject(err);
       });
 
-      this.socket.addEventListener('message', this.onMessage);
+      this.ws.addEventListener('message', this.onMessage);
     });
   }
 
@@ -30,24 +30,37 @@ export default class Connection {
     );
   }
 
-  onMessage = e => {
+  onMessage = async e => {
     const data = JSON.parse(e.data);
 
     if (data.method) {
-      // call processing
+      const { id, method, params } = data;
+
+      let result;
+      let error;
+
+      try {
+        result = (await this.handleRequest(method, params)) || {};
+      } catch (err) {
+        error = err;
+      }
+
+      this.send({
+        id,
+        error,
+        result,
+      });
       return;
     }
 
     const wait = this.waits.get(data.id);
 
-    if (!wait) {
-      return;
-    }
-
-    if (data.error) {
-      wait.reject(data.error);
-    } else {
-      wait.resolve(data.result);
+    if (wait) {
+      if (data.error) {
+        wait.reject(data.error);
+      } else {
+        wait.resolve(data.result);
+      }
     }
   };
 
@@ -57,7 +70,7 @@ export default class Connection {
 
       this.waits.set(id, { resolve, reject });
 
-      this.socket.send(
+      this.ws.send(
         JSON.stringify({
           jsonrpc: '2.0',
           id,

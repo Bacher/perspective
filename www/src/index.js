@@ -4,16 +4,20 @@ import 'normalize.css/normalize.css';
 
 import './index.scss';
 import App from './components/App';
-import Connection from './utils/Connection';
+import Client from './utils/Client';
 
-setTimeout(() => {
-  const socket = new Connection();
+setTimeout(async () => {
+  const client = new Client();
 
-  socket.connect().then(() => {
-    socket.request('authorize', {
-      username: 'John',
-    });
+  await client.connect();
+
+  await client.request('authorize', {
+    username: 'John',
   });
+
+  const state = await client.request('getCurrentState');
+
+  console.log('state:', state);
 
   ReactDOM.render(<App />, document.getElementById('root'));
 }, 0);
