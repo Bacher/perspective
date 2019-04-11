@@ -1,5 +1,4 @@
 import { GameObject } from '../db';
-import { renameIds } from '../utils/db';
 
 export default class ChunkState {
   constructor(id) {
@@ -21,11 +20,7 @@ export default class ChunkState {
       chunkId: this.id,
     });
 
-    const items = [];
-
-    for (const obj of objects) {
-      items.push([obj._id, obj]);
-    }
+    const items = objects.map(obj => [obj._id.toString(), obj]);
 
     this.gameObjects = new Map(items);
   }
@@ -33,8 +28,8 @@ export default class ChunkState {
   getObjectsExceptMeJSON(playerId) {
     const items = [];
 
-    for (const obj of this.gameObjects) {
-      if (obj._id !== playerId) {
+    for (const [id, obj] of this.gameObjects) {
+      if (id !== playerId) {
         const data = obj.toJSON();
 
         data.id = data._id;

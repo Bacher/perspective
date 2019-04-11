@@ -6,6 +6,8 @@ export default class PlayerClient {
     this.id = null;
     this.username = username;
     this.chunksIds = [0];
+    this.lastPosition = null;
+
     this.globalState = getGlobalState();
     this.globalState.connectPlayerClient(this);
   }
@@ -19,9 +21,14 @@ export default class PlayerClient {
     }
   }
 
-  async send(data) {
+  async send(methodName, data) {
     await this.con.send({
-      a: data,
+      method: methodName,
+      params: data,
     });
+  }
+
+  disconnect() {
+    this.globalState.disconnectPlayerClient(this);
   }
 }

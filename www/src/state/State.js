@@ -231,4 +231,10 @@ export default class State {
     this.applyMatrix();
     this.spritesUpdated();
   }
+
+  updateWorld(data) {
+    this.position = data.position;
+    this.applyMatrix();
+    this.spritesUpdated();
+  }
 }

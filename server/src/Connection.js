@@ -10,6 +10,7 @@ export default class Connection {
     this.lastId = 0;
 
     this.ws.on('message', this.onMessage);
+    this.ws.on('close', this.onClose);
   }
 
   onMessage = async json => {
@@ -19,7 +20,6 @@ export default class Connection {
       const { id, method, params } = data;
 
       let result;
-      let error;
 
       try {
         result = (await this.handleRequest(method, params)) || {};
@@ -33,17 +33,24 @@ export default class Connection {
           message = 'Internal Server Error';
         }
 
-        error = {
-          method,
-          message,
-        };
+        if (id) {
+          this.send({
+            id,
+            error: {
+              method,
+              message,
+            },
+          });
+        }
+        return;
       }
 
-      this.send({
-        id,
-        error,
-        result,
-      });
+      if (id) {
+        this.send({
+          id,
+          result,
+        });
+      }
       return;
     }
 
@@ -55,6 +62,12 @@ export default class Connection {
       } else {
         wait.resolve(data.result);
       }
+    }
+  };
+
+  onClose = () => {
+    if (this.playerClient) {
+      this.playerClient.disconnect();
     }
   };
 
@@ -78,14 +91,14 @@ export default class Connection {
         this.authorized = true;
         this.username = params.username;
 
-        this.player = new PlayerClient(this, params);
+        this.playerClient = new PlayerClient(this, params);
         return;
       }
 
       throw new Error('Unauthorized');
     }
 
-    return await this.player.handleRequest(methodName, params);
+    return await this.playerClient.handleRequest(methodName, params);
   }
 
   send(data) {

@@ -1,3 +1,5 @@
+import state from '../state';
+
 export default class Client {
   constructor() {
     this.lastId = 0;
@@ -37,19 +39,31 @@ export default class Client {
       const { id, method, params } = data;
 
       let result;
-      let error;
 
       try {
         result = (await this.handleRequest(method, params)) || {};
       } catch (err) {
-        error = err;
+        console.error(err);
+
+        if (id) {
+          this.send({
+            id,
+            error: {
+              ...err,
+              message: err.message,
+            },
+          });
+        }
+        return;
       }
 
-      this.send({
-        id,
-        error,
-        result,
-      });
+      if (id) {
+        this.send({
+          id,
+          result,
+        });
+      }
+
       return;
     }
 
@@ -79,5 +93,15 @@ export default class Client {
         })
       );
     });
+  }
+
+  handleRequest(methodName, params) {
+    switch (methodName) {
+      case 'worldUpdates':
+        state.updateWorld(params);
+        break;
+      default:
+        throw new Error(`Invalid method [${methodName}]`);
+    }
   }
 }
