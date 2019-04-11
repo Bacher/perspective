@@ -217,13 +217,16 @@ export default class State {
   }
 
   applyGameState(gameState) {
+    this.playerId = gameState.playerId;
     this.position = gameState.position;
 
-    this.sprites = new Map(
-      [['player', this.player], ['flag', this.flag]].concat(
-        gameState.gameObjects.map(gameObject => [gameObject.id, gameObject])
-      )
-    );
+    let sprites = [['player', this.player], ['flag', this.flag]];
+
+    for (const chunk of gameState.chunks) {
+      sprites = sprites.concat(chunk.gameObjects.map(obj => [obj.id, obj]));
+    }
+
+    this.sprites = new Map(sprites);
 
     this.applyMatrix();
     this.spritesUpdated();

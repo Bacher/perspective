@@ -1,56 +1,27 @@
-import { Player, GameObject } from './db';
-import { renameIds } from './utils/db';
+import { getGlobalState } from './state/GlobalState';
 
 export default class PlayerClient {
   constructor(connection, { username }) {
     this.con = connection;
+    this.id = null;
     this.username = username;
+    this.chunksIds = [0];
+    this.globalState = getGlobalState();
+    this.globalState.connectPlayerClient(this);
   }
 
   async handleRequest(methodName, params) {
     switch (methodName) {
       case 'getCurrentState':
-        const player = await Player.findOne({
-          username: this.username,
-        });
-
-        let playerObject;
-
-        if (!player) {
-          playerObject = await new GameObject({
-            type: 'player',
-            position: {
-              x: 0,
-              y: 0,
-            },
-            chunkId: 0,
-          }).save();
-
-          await new Player({
-            username: this.username,
-            gameObjectId: playerObject._id,
-          }).save();
-        } else {
-          playerObject = await GameObject.findOne({
-            _id: player.gameObjectId,
-          });
-        }
-
-        const gameObjects = await GameObject.find({
-          chunkId: playerObject.chunkId,
-          _id: {
-            $ne: playerObject._id,
-          },
-        }).lean();
-
-        renameIds(gameObjects);
-
-        return {
-          position: playerObject.position,
-          gameObjects,
-        };
+        return this.globalState.getPlayerStateSnapshot(this);
       default:
         throw new Error('Invalid method name');
     }
+  }
+
+  async send(data) {
+    await this.con.send({
+      a: data,
+    });
   }
 }
