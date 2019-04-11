@@ -33,25 +33,29 @@ export default class State {
 
     this.lastSpriteId = 0;
 
-    this.sprites = [
-      {
-        id: ++this.lastSpriteId,
-        name: 'man',
-        position: {
-          x: 0,
-          y: 0,
-        },
-        isFixed: true,
+    this.player = {
+      id: 'player',
+      type: 'man',
+      position: {
+        x: 0,
+        y: 0,
       },
-      {
-        id: ++this.lastSpriteId,
-        name: 'flag',
-        position: {
-          x: 0,
-          y: 0,
-        },
+      isFixed: true,
+    };
+
+    this.flag = {
+      id: 'flag',
+      type: 'flag',
+      position: {
+        x: 0,
+        y: 0,
       },
-    ];
+    };
+
+    this.sprites = new Map();
+
+    this.sprites.set('player', this.player);
+    this.sprites.set('flag', this.flag);
 
     this.dots = [
       {
@@ -169,8 +173,8 @@ export default class State {
     };
   }
 
-  registerSpritesComponent(sprites) {
-    this.spritesComp = sprites;
+  registerSpritesComponent(spritesComp) {
+    this.spritesComp = spritesComp;
   }
 
   spritesUpdated() {
@@ -178,8 +182,9 @@ export default class State {
   }
 
   moveTo({ x, y }) {
-    state.sprites[1].position = { x, y };
-    state.sprites[1].isHidden = false;
+    state.flag.position = { x, y };
+    state.flag.isHidden = false;
+
     state.spritesUpdated();
 
     const curX = this.position.x;
@@ -202,12 +207,25 @@ export default class State {
       i++;
 
       if (sigma === 1) {
-        this.sprites[1].isHidden = true;
+        this.flag.isHidden = true;
         clearInterval(this.moveInterval);
       }
 
       this.applyMatrix();
       this.spritesUpdated();
     }, 16);
+  }
+
+  applyGameState(gameState) {
+    this.position = gameState.position;
+
+    this.sprites = new Map(
+      [['player', this.player], ['flag', this.flag]].concat(
+        gameState.gameObjects.map(gameObject => [gameObject.id, gameObject])
+      )
+    );
+
+    this.applyMatrix();
+    this.spritesUpdated();
   }
 }

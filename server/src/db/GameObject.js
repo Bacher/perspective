@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const schema = new mongoose.Schema({
   type: String,
   chunkId: Number,
-  pos: {
+  position: {
     x: Number,
     y: Number,
   },

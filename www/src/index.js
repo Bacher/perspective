@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import 'normalize.css/normalize.css';
 
 import './index.scss';
+import state from './state';
 import App from './components/App';
 import Client from './utils/Client';
 
@@ -15,9 +16,11 @@ setTimeout(async () => {
     username: 'John',
   });
 
-  const state = await client.request('getCurrentState');
+  const gameState = await client.request('getCurrentState');
 
-  console.log('state:', state);
+  console.log('gameState:', gameState);
 
   ReactDOM.render(<App />, document.getElementById('root'));
+
+  state.applyGameState(gameState);
 }, 0);

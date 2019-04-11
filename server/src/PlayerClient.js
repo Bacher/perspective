@@ -1,4 +1,5 @@
 import { Player, GameObject } from './db';
+import { renameIds } from './utils/db';
 
 export default class PlayerClient {
   constructor(connection, { username }) {
@@ -13,12 +14,12 @@ export default class PlayerClient {
           username: this.username,
         });
 
-        let gameObject;
+        let playerObject;
 
         if (!player) {
-          gameObject = await new GameObject({
+          playerObject = await new GameObject({
             type: 'player',
-            pos: {
+            position: {
               x: 0,
               y: 0,
             },
@@ -27,22 +28,26 @@ export default class PlayerClient {
 
           await new Player({
             username: this.username,
-            gameObjectId: gameObject._id,
+            gameObjectId: playerObject._id,
           }).save();
         } else {
-          gameObject = await GameObject.findOne({
+          playerObject = await GameObject.findOne({
             _id: player.gameObjectId,
           });
         }
 
+        const gameObjects = await GameObject.find({
+          chunkId: playerObject.chunkId,
+          _id: {
+            $ne: playerObject._id,
+          },
+        }).lean();
+
+        renameIds(gameObjects);
+
         return {
-          objects: [
-            {
-              type: 'player',
-              isYou: true,
-              position: gameObject.pos,
-            },
-          ],
+          position: playerObject.position,
+          gameObjects,
         };
       default:
         throw new Error('Invalid method name');
