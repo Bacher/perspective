@@ -1,7 +1,8 @@
 import ChunkState from './ChunkState';
 import { Player, GameObject } from '../db';
+import { positionToChunkId, getAroundChunks } from '../utils/chunks';
 
-const PLAYER_ID = '5caf90ebdf8e815109257d4b';
+const PLAYER_ID = '5cb0c09155d42832b512bc38';
 // const TICK_INTERVAL = 33;
 const TICK_INTERVAL = 333;
 
@@ -11,7 +12,7 @@ export default class GlobalState {
   constructor() {
     instance = this;
     this.chunks = new Map();
-    this.players = new Set();
+    this.playerClients = new Map();
     this._getStateRequests = [];
   }
 
@@ -19,12 +20,8 @@ export default class GlobalState {
     this.startTick();
   }
 
-  connectPlayerClient(playerClient) {
-    this.players.add(playerClient);
-  }
-
   disconnectPlayerClient(playerClient) {
-    this.players.delete(playerClient);
+    this.playerClients.delete(playerClient);
   }
 
   async getPlayerStateSnapshot(playerClient) {
@@ -44,13 +41,15 @@ export default class GlobalState {
     let playerObject;
 
     if (!player) {
+      const position = {
+        x: 0,
+        y: 0,
+      };
+
       playerObject = await new GameObject({
         type: 'player',
-        position: {
-          x: 0,
-          y: 0,
-        },
-        chunkId: 0,
+        position,
+        chunkId: positionToChunkId(position),
       }).save();
 
       await new Player({
@@ -66,23 +65,34 @@ export default class GlobalState {
     const playerId = playerObject._id.toString();
     const chunkId = playerObject.chunkId;
 
-    const chunk = await this.getChunk(chunkId);
-
     playerClient.id = playerId;
-    playerClient.inGame = true;
 
     playerClient.lastPosition = playerObject.position;
 
-    return {
-      playerId: playerId,
-      chunksIds: playerClient.chunksIds,
-      position: playerObject.position,
-      chunks: [
-        {
+    playerClient.chunkId = chunkId;
+    playerClient.chunksIds = getAroundChunks(playerClient.chunkId, 2);
+
+    this.playerClients.set(playerClient.id, playerClient);
+
+    const chunks = [];
+
+    await Promise.all(
+      playerClient.chunksIds.map(async chunkId => {
+        const chunk = await this.getChunk(chunkId);
+
+        chunks.push({
           chunkId,
           gameObjects: chunk.getObjectsExceptMeJSON(playerId),
-        },
-      ],
+        });
+      })
+    );
+
+    return {
+      playerId: playerId,
+      chunkId: playerClient.chunkId,
+      chunksIds: playerClient.chunksIds,
+      position: playerObject.position,
+      chunks,
     };
   }
 
@@ -97,26 +107,31 @@ export default class GlobalState {
   };
 
   async tick() {
-    await this.handleGetStateRequests();
+    const playerClient = this.playerClients.get(PLAYER_ID);
 
-    this.updatedObjects = new Set();
+    if (playerClient) {
+      const chunk = this.chunks.get(playerClient.chunkId);
 
-    const chunk = this.chunks.get(0);
+      const playerObject = chunk.gameObjects.get(PLAYER_ID);
 
-    if (chunk) {
-      const player = chunk.gameObjects.get(PLAYER_ID);
+      const { x, y } = playerObject.position;
 
-      const { x, y } = player.position;
-
-      player.position = {
-        x: x + 0.5,
+      await chunk.updatePosition(playerObject, {
+        x: x + 0.3,
         y: y + 0.1,
-      };
+      });
 
-      this.updatedObjects.add(player);
+      playerClient.chunkId = playerObject.chunkId;
+      playerClient.chunksIds = getAroundChunks(playerObject.chunkId, 2);
+
+      for (const chunkId of playerClient.chunksIds) {
+        await this.getChunk(chunkId);
+      }
     }
 
-    await Promise.all([this.sendUpdates(), this.saveChanges()]);
+    await this.sendUpdates();
+    await this.saveChanges();
+    await this.handleGetStateRequests();
   }
 
   async handleGetStateRequests() {
@@ -131,63 +146,93 @@ export default class GlobalState {
         return promise;
       })
     );
+
+    this._getStateRequests = [];
   }
 
   async sendUpdates() {
-    const players = Array.from(this.players.values());
+    for (const playerClient of this.playerClients.values()) {
+      const chunks = {};
+      let hasUpdatedChunks = false;
+      let position = null;
 
-    await Promise.all(
-      players.map(async playerClient => {
-        if (!playerClient.inGame) {
-          return;
-        }
+      // TODO: Когда добавляется chunkId в playerClient.chunksIds нужно отдавать в этот момент полный слепок чанка
+      for (const chunkId of playerClient.chunksIds) {
+        const chunk = this.getChunkIfLoaded(chunkId);
 
-        const updates = [];
-        let position = null;
+        const chunkDiff = {
+          updated: [],
+          removed: [],
+        };
 
-        for (const obj of this.updatedObjects) {
+        let hasChanges = false;
+
+        for (const obj of chunk.updatedObjects) {
           if (obj._id.toString() === playerClient.id) {
             position = obj.position;
-          } else if (playerClient.chunksIds.includes(obj.chunkId)) {
-            updates.push(obj);
+          } else {
+            chunkDiff.updated.push(formatObject(obj));
+            hasChanges = true;
           }
         }
 
-        const { x, y } = playerClient.lastPosition;
-
-        if (updates.length === 0 && position.x === x && position.y === y) {
-          return;
+        for (const obj of chunk.removedObjects) {
+          chunkDiff.removed.push(obj._id.toString());
+          hasChanges = true;
         }
 
-        playerClient.lastPosition = position;
+        if (hasChanges) {
+          chunks[chunkId] = chunkDiff;
+          hasUpdatedChunks = true;
+        }
+      }
 
-        try {
-          await playerClient.send('worldUpdates', {
-            position,
-            chunksIds: playerClient.chunksIds,
-            updates,
-          });
-        } catch (err) {
+      const { x, y } = playerClient.lastPosition;
+
+      if (
+        !hasUpdatedChunks &&
+        (!position || (position.x === x && position.y === y))
+      ) {
+        return;
+      }
+
+      playerClient.lastPosition = {
+        x: position.x,
+        y: position.y,
+      };
+
+      playerClient
+        .send('worldUpdates', {
+          position,
+          chunksIds: playerClient.chunksIds,
+          chunks,
+        })
+        .catch(err => {
           console.error('Send event failed:', err);
-        }
-      })
-    );
+        });
+    }
   }
 
   async saveChanges() {
-    for (const object of this.updatedObjects) {
-      await object.save();
+    for (const chunk of this.chunks.values()) {
+      if (chunk.hasChanges) {
+        await chunk.saveChanges();
+      }
     }
   }
 
   async loadChunk(id) {
-    const chunk = new ChunkState(id);
+    const chunk = new ChunkState(this, id);
 
     this.chunks.set(id, chunk);
 
     await chunk.load();
 
     return chunk;
+  }
+
+  getChunkIfLoaded(id) {
+    return this.chunks.get(id) || null;
   }
 
   async getChunk(id) {
@@ -205,4 +250,12 @@ export default class GlobalState {
 
 export function getGlobalState() {
   return instance;
+}
+
+function formatObject(obj) {
+  return {
+    id: obj._id.toString(),
+    type: obj.type,
+    position: obj.position,
+  };
 }

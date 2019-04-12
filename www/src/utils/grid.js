@@ -1,23 +1,22 @@
 import state from '../state';
 
+const CELL_SIZE = 10;
+
 export function drawGrid(ctx, pos) {
   ctx.save();
   ctx.strokeStyle = '#ddd';
 
-  const width = 400;
-  const widthD2 = width / 2;
+  const widthD2 = state.width / 2;
+  const heightD2 = state.height / 2;
 
-  const height = 300;
-  const heightD2 = height / 2;
+  const dX = Math.round(pos.x / CELL_SIZE) * CELL_SIZE;
+  const dY = Math.round(pos.y / CELL_SIZE) * CELL_SIZE;
 
-  const dX = Math.round(pos.x / 10) * 10;
-  const dY = Math.round(pos.y / 10) * 10;
-
-  for (let x = dX - widthD2; x <= dX + widthD2; x += 10) {
+  for (let x = dX - widthD2; x <= dX + widthD2; x += CELL_SIZE) {
     drawLine(ctx, { x, y: dY - heightD2, z: 0 }, { x, y: dY + heightD2, z: 0 });
   }
 
-  for (let y = dY - heightD2; y <= dY + heightD2; y += 10) {
+  for (let y = dY - heightD2; y <= dY + heightD2; y += CELL_SIZE) {
     drawLine(ctx, { x: dX - widthD2, y, z: 0 }, { x: dX + widthD2, y, z: 0 });
   }
 

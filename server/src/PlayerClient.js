@@ -5,11 +5,11 @@ export default class PlayerClient {
     this.con = connection;
     this.id = null;
     this.username = username;
-    this.chunksIds = [0];
+    this.chunkId = null;
+    this.chunksIds = null;
     this.lastPosition = null;
 
     this.globalState = getGlobalState();
-    this.globalState.connectPlayerClient(this);
   }
 
   async handleRequest(methodName, params) {

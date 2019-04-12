@@ -1,8 +1,18 @@
 import { GameObject } from '../db';
+import { positionToChunkId } from '../utils/chunks';
 
 export default class ChunkState {
-  constructor(id) {
+  constructor(globalState, id) {
+    this.globalState = globalState;
     this.id = id;
+
+    this.gameObjects = null;
+    this.hasChanges = false;
+
+    this.updatedObjects = new Set();
+    // TODO: Учесть ситуацию когда одним действием в tick объект уходит за пределы chunk
+    // а другим действием в этом же tick возвращается в этот chunk
+    this.removedObjects = new Set();
 
     this.loading = new Promise(resolve => {
       this._resolveLoading = resolve;
@@ -25,6 +35,25 @@ export default class ChunkState {
     this.gameObjects = new Map(items);
   }
 
+  async saveChanges() {
+    for (const object of this.updatedObjects) {
+      await object.save();
+    }
+
+    this.updatedObjects = new Set();
+    this.removedObjects = new Set();
+    this.hasChanges = false;
+  }
+
+  async addObject(obj) {
+    obj.chunkId = this.id;
+
+    await this.loading;
+
+    this.gameObjects.set(obj._id.toString(), obj);
+    this.updatedObjects.add(obj);
+  }
+
   getObjectsExceptMeJSON(playerId) {
     const items = [];
 
@@ -42,5 +71,25 @@ export default class ChunkState {
     }
 
     return items;
+  }
+
+  async updatePosition(obj, pos) {
+    const chunkId = positionToChunkId(pos);
+
+    obj.position = pos;
+
+    if (chunkId === this.id) {
+      this.updatedObjects.add(obj);
+      this.hasChanges = true;
+    } else {
+      this.gameObjects.delete(obj._id.toString());
+      this.removedObjects.add(obj);
+
+      const moveToChunk = this.globalState.getChunkIfLoaded(chunkId);
+
+      if (moveToChunk) {
+        await moveToChunk.addObject(obj);
+      }
+    }
   }
 }
