@@ -13,6 +13,9 @@ export default class GlobalState {
     this.chunks = new Map();
     this.playerClients = new Map();
     this._getStateRequests = [];
+    this.needSave = new Set();
+
+    this.lastTick = 0;
   }
 
   async init() {
@@ -20,7 +23,7 @@ export default class GlobalState {
   }
 
   disconnectPlayerClient(playerClient) {
-    this.playerClients.delete(playerClient);
+    this.playerClients.delete(playerClient.id);
   }
 
   async getPlayerStateSnapshot(playerClient) {
@@ -103,38 +106,56 @@ export default class GlobalState {
 
   startTick = async () => {
     const start = Date.now();
+    const tickId = ++this.lastTick;
 
-    await this.tick();
+    const time = (tickId * TICK_INTERVAL) / 1000;
+
+    await this.tick(tickId, time);
 
     const remains = Math.max(0, TICK_INTERVAL - (Date.now() - start));
 
     setTimeout(this.startTick, remains);
   };
 
-  async tick() {
-    for (const playerClient of this.playerClients.values()) {
-      const chunk = this.chunks.get(playerClient.chunkId);
+  async tick(tickId, time) {
+    // for (const playerClient of this.playerClients.values()) {
+    //   const chunk = this.chunks.get(playerClient.chunkId);
+    //
+    //   const playerObject = chunk.gameObjects.get(playerClient.id);
+    //
+    //   const { x, y } = playerObject.position;
+    //
+    //   await chunk.updatePosition(playerObject, {
+    //     x: x + 2,
+    //     y: y + 1,
+    //   });
+    //
+    //   // Если изменилась позиция обхекта игрока, то надо пересчитать чанки в playerClient
+    //   playerClient.chunkId = playerObject.chunkId;
+    //   playerClient.chunksIds = getAroundChunks(playerObject.chunkId, 2);
+    //
+    //   for (const chunkId of playerClient.chunksIds) {
+    //     await this.getChunk(chunkId);
+    //   }
+    // }
 
-      const playerObject = chunk.gameObjects.get(playerClient.id);
+    const pig = await db().gameObjects.findOne({ type: 'pig' });
+    pig.id = pig._id.toString();
 
-      const { x, y } = playerObject.position;
+    const chunk = this.chunks.get(pig.chunkId);
 
-      await chunk.updatePosition(playerObject, {
-        x: x + 2,
-        y: y + 1,
-      });
+    if (chunk) {
+      const position = {
+        x: Math.round(730 + 50 * Math.cos(time)),
+        y: Math.round(650 + 50 * Math.sin(time)),
+      };
 
-      // Если изменилась позиция обхекта игрока, то надо пересчитать чанки в playerClient
-      playerClient.chunkId = playerObject.chunkId;
-      playerClient.chunksIds = getAroundChunks(playerObject.chunkId, 2);
-
-      for (const chunkId of playerClient.chunksIds) {
-        await this.getChunk(chunkId);
-      }
+      await chunk.updatePosition(pig, position);
     }
 
-    await this.sendUpdates();
-    await this.saveChanges();
+    this.sendUpdates();
+    this.tickCleanUp();
+    await this.saveObjects();
     await this.handleGetStateRequests();
   }
 
@@ -154,13 +175,14 @@ export default class GlobalState {
     this._getStateRequests = [];
   }
 
-  async sendUpdates() {
+  sendUpdates() {
     for (const playerClient of this.playerClients.values()) {
-      const chunks = {};
+      const updatedChunks = {};
       let hasUpdatedChunks = false;
       let position = null;
 
-      // TODO: Когда добавляется chunkId в playerClient.chunksIds нужно отдавать в этот момент полный слепок чанка
+      // TODO: Когда добавляется chunkId в playerClient.chunksIds нужно отдавать
+      // в этот момент полный слепок чанка
       for (const chunkId of playerClient.chunksIds) {
         const chunk = this.getChunkIfLoaded(chunkId);
 
@@ -186,7 +208,7 @@ export default class GlobalState {
         }
 
         if (hasChanges) {
-          chunks[chunkId] = chunkDiff;
+          updatedChunks[chunkId] = chunkDiff;
           hasUpdatedChunks = true;
         }
       }
@@ -200,16 +222,18 @@ export default class GlobalState {
         return;
       }
 
-      playerClient.lastPosition = {
-        x: position.x,
-        y: position.y,
-      };
+      if (position) {
+        playerClient.lastPosition = {
+          x: position.x,
+          y: position.y,
+        };
+      }
 
       playerClient
         .send('worldUpdates', {
-          position,
+          position: playerClient.lastPosition,
           chunksIds: playerClient.chunksIds,
-          chunks,
+          updatedChunks,
         })
         .catch(err => {
           console.error('Send event failed:', err);
@@ -217,11 +241,9 @@ export default class GlobalState {
     }
   }
 
-  async saveChanges() {
+  tickCleanUp() {
     for (const chunk of this.chunks.values()) {
-      if (chunk.hasChanges) {
-        await chunk.saveChanges();
-      }
+      chunk.tickCleanUp();
     }
   }
 
@@ -249,6 +271,28 @@ export default class GlobalState {
     }
 
     return chunk;
+  }
+
+  markObjectAsUpdated(obj) {
+    this.needSave.add(obj);
+  }
+
+  async saveObjects() {
+    await Promise.all(
+      Array.from(this.needSave).map(obj =>
+        db().gameObjects.updateOne(
+          { _id: obj._id },
+          {
+            $set: {
+              chunkId: obj.chunkId,
+              position: obj.position,
+            },
+          }
+        )
+      )
+    );
+
+    this.needSave = new Set();
   }
 }
 

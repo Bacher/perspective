@@ -7,7 +7,6 @@ export default class ChunkState {
     this.id = id;
 
     this.gameObjects = null;
-    this.hasChanges = false;
 
     this.updatedObjects = new Set();
     // TODO: Учесть ситуацию когда одним действием в tick объект уходит за пределы chunk
@@ -41,24 +40,14 @@ export default class ChunkState {
     this.gameObjects = new Map(items);
   }
 
-  async saveChanges() {
-    await Promise.all(
-      Array.from(this.updatedObjects).map(obj =>
-        db().gameObjects.updateOne(
-          { _id: obj._id },
-          {
-            $set: {
-              chunkId: obj.chunkId,
-              position: obj.position,
-            },
-          }
-        )
-      )
-    );
+  tickCleanUp() {
+    if (this.updatedObjects.size) {
+      this.updatedObjects = new Set();
+    }
 
-    this.updatedObjects = new Set();
-    this.removedObjects = new Set();
-    this.hasChanges = false;
+    if (this.removedObjects.size) {
+      this.removedObjects = new Set();
+    }
   }
 
   async addObject(obj) {
@@ -87,9 +76,10 @@ export default class ChunkState {
 
     obj.position = pos;
 
+    this.globalState.markObjectAsUpdated(obj);
+
     if (chunkId === this.id) {
       this.updatedObjects.add(obj);
-      this.hasChanges = true;
     } else {
       this.gameObjects.delete(obj.id);
       this.removedObjects.add(obj);

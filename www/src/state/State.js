@@ -234,6 +234,16 @@ export default class State {
 
   updateWorld(data) {
     this.position = data.position;
+
+    for (const chunkId of Object.keys(data.updatedChunks)) {
+      const chunk = data.updatedChunks[chunkId];
+
+      for (const obj of chunk.updated) {
+        const sprite = this.sprites.get(obj.id);
+        sprite.position = obj.position;
+      }
+    }
+
     this.applyMatrix();
     this.spritesUpdated();
   }

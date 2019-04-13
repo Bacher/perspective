@@ -29,6 +29,7 @@ export default class PlayerClient {
   }
 
   disconnect() {
+    this.con = null;
     this.globalState.disconnectPlayerClient(this);
   }
 }

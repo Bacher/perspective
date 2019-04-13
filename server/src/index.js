@@ -9,7 +9,7 @@ setTimeout(async () => {
   try {
     await connect();
 
-    //await generateObjects();
+    // await generateObjects();
 
     const globalState = new GlobalState();
     await globalState.init();
