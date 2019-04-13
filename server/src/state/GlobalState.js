@@ -91,7 +91,7 @@ export default class GlobalState {
         const chunk = await this.getChunk(chunkId);
 
         chunks.push({
-          chunkId,
+          id: chunkId,
           gameObjects: chunk.getObjectsExceptMeJSON(playerId),
         });
       })
@@ -212,23 +212,23 @@ export default class GlobalState {
 
   sendUpdates() {
     for (const playerClient of this.playerClients.values()) {
-      const updatedChunks = {};
-      let hasUpdatedChunks = false;
+      const updatedChunks = [];
       let position = null;
 
       for (const chunkId of playerClient.chunksIds) {
         const chunk = this.getChunkIfLoaded(chunkId);
 
         if (playerClient.newChunks.has(chunkId)) {
-          updatedChunks[chunkId] = {
+          updatedChunks.push({
+            id: chunkId,
             updated: chunk.getObjectsExceptMeJSON(playerClient.id),
             removed: [],
-          };
-          hasUpdatedChunks = true;
+          });
           continue;
         }
 
         const chunkDiff = {
+          id: chunkId,
           updated: [],
           removed: [],
         };
@@ -249,8 +249,7 @@ export default class GlobalState {
         }
 
         if (hasChanges) {
-          updatedChunks[chunkId] = chunkDiff;
-          hasUpdatedChunks = true;
+          updatedChunks.push(chunkDiff);
         }
       }
 
@@ -261,7 +260,7 @@ export default class GlobalState {
       const { x, y } = playerClient.lastPosition;
 
       if (
-        !hasUpdatedChunks &&
+        updatedChunks.length === 0 &&
         (!position || (position.x === x && position.y === y))
       ) {
         return;

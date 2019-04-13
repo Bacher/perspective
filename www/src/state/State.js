@@ -13,6 +13,8 @@ export default class State {
 
     this.isPers = true;
 
+    this.playerId = null;
+    this.chunksIds = null;
     this.position = {
       x: 0,
       y: 0,
@@ -219,11 +221,18 @@ export default class State {
   applyGameState(gameState) {
     this.playerId = gameState.playerId;
     this.position = gameState.position;
+    this.chunksIds = gameState.chunksIds;
 
     let sprites = [['player', this.player], ['flag', this.flag]];
 
     for (const chunk of gameState.chunks) {
-      sprites = sprites.concat(chunk.gameObjects.map(obj => [obj.id, obj]));
+      const items = chunk.gameObjects.map(obj => {
+        obj.chunkId = chunk.id;
+
+        return [obj.id, obj];
+      });
+
+      sprites = sprites.concat(items);
     }
 
     this.sprites = new Map(sprites);
@@ -235,10 +244,23 @@ export default class State {
   updateWorld(data) {
     this.position = data.position;
 
-    for (const chunkId of Object.keys(data.updatedChunks)) {
-      const chunk = data.updatedChunks[chunkId];
+    const deletedChunks = [];
 
+    for (const chunkId of this.chunksIds) {
+      if (!data.chunksIds.includes(chunkId)) {
+        deletedChunks.push(chunkId);
+      }
+    }
+
+    if (deletedChunks.length) {
+      console.log('DELETED CHUNKS:', deletedChunks);
+    }
+
+    this.chunksIds = data.chunksIds;
+
+    for (const chunk of data.updatedChunks) {
       for (const obj of chunk.updated) {
+        obj.chunkId = chunk.id;
         const sprite = this.sprites.get(obj.id);
 
         if (sprite) {
@@ -247,6 +269,18 @@ export default class State {
           this.sprites.set(obj.id, obj);
         }
       }
+    }
+
+    if (deletedChunks.length) {
+      const count = this.sprites.size;
+
+      for (const [id, sprite] of this.sprites) {
+        if (deletedChunks.includes(sprite.chunkId)) {
+          this.sprites.delete(id);
+        }
+      }
+
+      console.log(`Removed ${count - this.sprites.size} sprites`);
     }
 
     this.applyMatrix();
