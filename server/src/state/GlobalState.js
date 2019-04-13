@@ -1,8 +1,7 @@
-import ChunkState from './ChunkState';
-import { Player, GameObject } from '../db';
+import ChunkState, { formatObject } from './ChunkState';
+import { db } from '../Mongo';
 import { positionToChunkId, getAroundChunks } from '../utils/chunks';
 
-const PLAYER_ID = '5cb0c09155d42832b512bc38';
 // const TICK_INTERVAL = 33;
 const TICK_INTERVAL = 333;
 
@@ -34,7 +33,7 @@ export default class GlobalState {
   }
 
   async _getPlayerStateSnapshot(playerClient) {
-    const player = await Player.findOne({
+    const player = await db().players.findOne({
       username: playerClient.username,
     });
 
@@ -42,27 +41,33 @@ export default class GlobalState {
 
     if (!player) {
       const position = {
-        x: 0,
-        y: 0,
+        x: 700,
+        y: 700,
       };
 
-      playerObject = await new GameObject({
+      playerObject = {
         type: 'player',
         position,
         chunkId: positionToChunkId(position),
-      }).save();
+      };
 
-      await new Player({
+      await db().gameObjects.insertOne(playerObject);
+
+      playerObject.id = playerObject._id.toString();
+
+      await db().players.insertOne({
         username: playerClient.username,
-        gameObjectId: playerObject._id,
-      }).save();
+        gameObjectId: playerObject.id,
+      });
     } else {
-      playerObject = await GameObject.findOne({
+      playerObject = await db().gameObjects.findOne({
         _id: player.gameObjectId,
       });
+
+      playerObject.id = playerObject._id.toString();
     }
 
-    const playerId = playerObject._id.toString();
+    const playerId = playerObject.id;
     const chunkId = playerObject.chunkId;
 
     playerClient.id = playerId;
@@ -107,20 +112,19 @@ export default class GlobalState {
   };
 
   async tick() {
-    const playerClient = this.playerClients.get(PLAYER_ID);
-
-    if (playerClient) {
+    for (const playerClient of this.playerClients.values()) {
       const chunk = this.chunks.get(playerClient.chunkId);
 
-      const playerObject = chunk.gameObjects.get(PLAYER_ID);
+      const playerObject = chunk.gameObjects.get(playerClient.id);
 
       const { x, y } = playerObject.position;
 
       await chunk.updatePosition(playerObject, {
-        x: x + 0.3,
-        y: y + 0.1,
+        x: x + 2,
+        y: y + 1,
       });
 
+      // Если изменилась позиция обхекта игрока, то надо пересчитать чанки в playerClient
       playerClient.chunkId = playerObject.chunkId;
       playerClient.chunksIds = getAroundChunks(playerObject.chunkId, 2);
 
@@ -168,7 +172,7 @@ export default class GlobalState {
         let hasChanges = false;
 
         for (const obj of chunk.updatedObjects) {
-          if (obj._id.toString() === playerClient.id) {
+          if (obj.id === playerClient.id) {
             position = obj.position;
           } else {
             chunkDiff.updated.push(formatObject(obj));
@@ -177,7 +181,7 @@ export default class GlobalState {
         }
 
         for (const obj of chunk.removedObjects) {
-          chunkDiff.removed.push(obj._id.toString());
+          chunkDiff.removed.push(obj.id);
           hasChanges = true;
         }
 
@@ -250,12 +254,4 @@ export default class GlobalState {
 
 export function getGlobalState() {
   return instance;
-}
-
-function formatObject(obj) {
-  return {
-    id: obj._id.toString(),
-    type: obj.type,
-    position: obj.position,
-  };
 }

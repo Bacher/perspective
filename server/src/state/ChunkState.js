@@ -1,4 +1,4 @@
-import { GameObject } from '../db';
+import { db } from '../Mongo';
 import { positionToChunkId } from '../utils/chunks';
 
 export default class ChunkState {
@@ -26,19 +26,35 @@ export default class ChunkState {
   }
 
   async _load() {
-    const objects = await GameObject.find({
-      chunkId: this.id,
-    });
+    const objects = await db()
+      .gameObjects.find({
+        chunkId: this.id,
+      })
+      .toArray();
 
-    const items = objects.map(obj => [obj._id.toString(), obj]);
+    const items = objects.map(obj => {
+      obj.id = obj._id.toString();
+
+      return [obj.id, obj];
+    });
 
     this.gameObjects = new Map(items);
   }
 
   async saveChanges() {
-    for (const object of this.updatedObjects) {
-      await object.save();
-    }
+    await Promise.all(
+      Array.from(this.updatedObjects).map(obj =>
+        db().gameObjects.updateOne(
+          { _id: obj._id },
+          {
+            $set: {
+              chunkId: obj.chunkId,
+              position: obj.position,
+            },
+          }
+        )
+      )
+    );
 
     this.updatedObjects = new Set();
     this.removedObjects = new Set();
@@ -50,7 +66,7 @@ export default class ChunkState {
 
     await this.loading;
 
-    this.gameObjects.set(obj._id.toString(), obj);
+    this.gameObjects.set(obj.id, obj);
     this.updatedObjects.add(obj);
   }
 
@@ -59,14 +75,7 @@ export default class ChunkState {
 
     for (const [id, obj] of this.gameObjects) {
       if (id !== playerId) {
-        const data = obj.toJSON();
-
-        data.id = data._id;
-        data._id = undefined;
-        data.__v = undefined;
-        data.chunkId = undefined;
-
-        items.push(data);
+        items.push(formatObject(obj));
       }
     }
 
@@ -82,7 +91,7 @@ export default class ChunkState {
       this.updatedObjects.add(obj);
       this.hasChanges = true;
     } else {
-      this.gameObjects.delete(obj._id.toString());
+      this.gameObjects.delete(obj.id);
       this.removedObjects.add(obj);
 
       const moveToChunk = this.globalState.getChunkIfLoaded(chunkId);
@@ -92,4 +101,12 @@ export default class ChunkState {
       }
     }
   }
+}
+
+export function formatObject(obj) {
+  return {
+    id: obj.id,
+    type: obj.type,
+    position: obj.position,
+  };
 }

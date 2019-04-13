@@ -1,9 +1,13 @@
 const WORLD_CHUNK_SIZE = 1000;
 const CHUNK_SIZE = 100;
 
-export function positionToChunkId(pos) {
-  const m = Math.floor(pos.x / CHUNK_SIZE);
-  const n = Math.floor(pos.y / CHUNK_SIZE);
+export function positionToChunkId({ x, y }) {
+  if (x < 0 || y < 0) {
+    throw new Error(`Invalid position: {x:${x},y:${y}}`);
+  }
+
+  const m = Math.floor(x / CHUNK_SIZE);
+  const n = Math.floor(y / CHUNK_SIZE);
 
   return n * WORLD_CHUNK_SIZE + m;
 }

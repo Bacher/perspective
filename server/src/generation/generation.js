@@ -1,21 +1,23 @@
-import { GameObject } from '../db';
+import { db } from '../Mongo';
 import { positionToChunkId } from '../utils/chunks';
 
 export async function generateObjects() {
+  const items = [];
+
   for (let i = 0; i < 1000; i++) {
     const position = {
-      x: Math.random() * 400 - 200,
-      y: Math.random() * 400 - 200,
+      x: Math.round(Math.random() * 1000),
+      y: Math.round(Math.random() * 1000),
     };
 
-    const obj = new GameObject({
+    items.push({
       type: 'tree',
       chunkId: positionToChunkId(position),
       position,
     });
-
-    await obj.save();
   }
+
+  await db().gameObjects.insertMany(items);
 
   console.log('Generating complete');
 }
