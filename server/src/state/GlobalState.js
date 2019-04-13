@@ -171,7 +171,16 @@ export default class GlobalState {
 
         // Если изменилась позиция объекта игрока, то надо пересчитать чанки в playerClient
         playerClient.chunkId = playerObject.chunkId;
-        playerClient.chunksIds = getAroundChunks(playerObject.chunkId, 2);
+
+        const chunksIds = getAroundChunks(playerObject.chunkId, 2);
+
+        for (const chunkId of chunksIds) {
+          if (!playerClient.chunksIds.includes(chunkId)) {
+            playerClient.newChunks.add(chunkId);
+          }
+        }
+
+        playerClient.chunksIds = chunksIds;
 
         for (const chunkId of playerClient.chunksIds) {
           await this.getChunk(chunkId);
@@ -207,16 +216,22 @@ export default class GlobalState {
       let hasUpdatedChunks = false;
       let position = null;
 
-      // TODO: Когда добавляется chunkId в playerClient.chunksIds нужно отдавать
-      // в этот момент полный слепок чанка
       for (const chunkId of playerClient.chunksIds) {
         const chunk = this.getChunkIfLoaded(chunkId);
+
+        if (playerClient.newChunks.has(chunkId)) {
+          updatedChunks[chunkId] = {
+            updated: chunk.getObjectsExceptMeJSON(playerClient.id),
+            removed: [],
+          };
+          hasUpdatedChunks = true;
+          continue;
+        }
 
         const chunkDiff = {
           updated: [],
           removed: [],
         };
-
         let hasChanges = false;
 
         for (const obj of chunk.updatedObjects) {
@@ -237,6 +252,10 @@ export default class GlobalState {
           updatedChunks[chunkId] = chunkDiff;
           hasUpdatedChunks = true;
         }
+      }
+
+      if (playerClient.newChunks.size) {
+        playerClient.newChunks = new Set();
       }
 
       const { x, y } = playerClient.lastPosition;

@@ -9,6 +9,7 @@ export default class PlayerClient {
     this.chunksIds = null;
     this.lastPosition = null;
     this.moveTo = null;
+    this.newChunks = new Set();
 
     this.globalState = getGlobalState();
   }

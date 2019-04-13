@@ -240,7 +240,12 @@ export default class State {
 
       for (const obj of chunk.updated) {
         const sprite = this.sprites.get(obj.id);
-        sprite.position = obj.position;
+
+        if (sprite) {
+          sprite.position = obj.position;
+        } else {
+          this.sprites.set(obj.id, obj);
+        }
       }
     }
 

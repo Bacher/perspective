@@ -13,7 +13,12 @@ export default class App extends PureComponent {
 
     const point = state.project({ x: e.clientX, y: e.clientY });
 
-    client.send('moveTo', { position: point });
+    client.send('moveTo', {
+      position: {
+        x: Math.round(point.x),
+        y: Math.round(point.y),
+      },
+    });
 
     //state.moveTo(point);
   };
