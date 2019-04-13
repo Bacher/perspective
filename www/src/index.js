@@ -6,21 +6,24 @@ import './index.scss';
 import state from './state';
 import App from './components/App';
 import Client from './utils/Client';
+import { parseSearchQuery } from './utils/querystring';
 
 setTimeout(async () => {
   const client = new Client();
 
   await client.connect();
 
+  const params = parseSearchQuery();
+
   await client.request('authorize', {
-    username: 'John',
+    username: params.username || 'John',
   });
 
   const gameState = await client.request('getCurrentState');
 
   console.log('gameState:', gameState);
 
-  ReactDOM.render(<App client={client} />, document.getElementById('root'));
+  ReactDOM.render(<App />, document.getElementById('root'));
 
   state.applyGameState(gameState);
 }, 0);

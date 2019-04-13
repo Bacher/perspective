@@ -21,6 +21,9 @@ export default class PlayerClient {
       case 'moveTo':
         this.moveTo = params.position;
         return;
+      case 'chatMessage':
+        this.globalState.updateTextFrom(this, params.text);
+        return;
       default:
         throw new Error('Invalid method name');
     }

@@ -16,6 +16,7 @@ export default class GlobalState {
     this.playerClients = new Map();
     this._getStateRequests = [];
     this.needSave = new Set();
+    this.tickActions = [];
 
     this.lastTick = 0;
   }
@@ -62,7 +63,7 @@ export default class GlobalState {
 
       await db().players.insertOne({
         username: playerClient.username,
-        gameObjectId: playerObject.id,
+        gameObjectId: playerObject._id,
       });
     } else {
       playerObject = await db().gameObjects.findOne({
@@ -188,6 +189,22 @@ export default class GlobalState {
       }
     }
 
+    for (const tickAction of this.tickActions) {
+      switch (tickAction.type) {
+        case 'updateText':
+          const { playerClient, text } = tickAction;
+
+          const chunk = this.getChunkIfLoaded(playerClient.chunkId);
+
+          chunk.updateObject(playerClient.id, player => {
+            player.chatMessage = text;
+          });
+          break;
+        default:
+          throw new Error(`Invalid tick action [${tickAction.type}]`);
+      }
+    }
+
     this.sendUpdates();
     this.tickCleanUp();
     await this.saveObjects();
@@ -286,6 +303,10 @@ export default class GlobalState {
   }
 
   tickCleanUp() {
+    if (this.tickActions.length) {
+      this.tickActions = [];
+    }
+
     for (const chunk of this.chunks.values()) {
       chunk.tickCleanUp();
     }
@@ -337,6 +358,14 @@ export default class GlobalState {
     );
 
     this.needSave = new Set();
+  }
+
+  updateTextFrom(playerClient, text) {
+    this.tickActions.push({
+      playerClient,
+      type: 'updateText',
+      text,
+    });
   }
 }
 

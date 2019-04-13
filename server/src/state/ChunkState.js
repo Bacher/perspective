@@ -91,6 +91,19 @@ export default class ChunkState {
       }
     }
   }
+
+  updateObject(id, callback) {
+    const obj = this.gameObjects.get(id);
+
+    if (!obj) {
+      throw new Error();
+    }
+
+    callback(obj);
+
+    this.updatedObjects.add(obj);
+    // TODO: Нужно условие когда нужно сохранять в БД.
+  }
 }
 
 export function formatObject(obj) {
@@ -98,5 +111,6 @@ export function formatObject(obj) {
     id: obj.id,
     type: obj.type,
     position: obj.position,
+    chatMessage: obj.chatMessage,
   };
 }

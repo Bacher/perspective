@@ -37,7 +37,7 @@ export default class State {
 
     this.player = {
       id: 'player',
-      type: 'man',
+      type: 'player',
       position: {
         x: 0,
         y: 0,
@@ -252,16 +252,16 @@ export default class State {
       }
     }
 
-    if (deletedChunks.length) {
-      console.log('DELETED CHUNKS:', deletedChunks);
-    }
-
     this.chunksIds = data.chunksIds;
 
     for (const chunk of data.updatedChunks) {
       for (const obj of chunk.updated) {
         obj.chunkId = chunk.id;
         const sprite = this.sprites.get(obj.id);
+
+        if (obj.type === 'player') {
+          console.log('Message:', obj.chatMessage);
+        }
 
         if (sprite) {
           sprite.position = obj.position;
@@ -272,15 +272,11 @@ export default class State {
     }
 
     if (deletedChunks.length) {
-      const count = this.sprites.size;
-
       for (const [id, sprite] of this.sprites) {
         if (deletedChunks.includes(sprite.chunkId)) {
           this.sprites.delete(id);
         }
       }
-
-      console.log(`Removed ${count - this.sprites.size} sprites`);
     }
 
     this.applyMatrix();

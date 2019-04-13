@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "gl-matrix": "^3.0.0",
+    "lodash.throttle": "^4.1.1",
     "node-sass": "^4.11.0",
     "normalize.css": "^8.0.1",
     "react": "^16.8.6",

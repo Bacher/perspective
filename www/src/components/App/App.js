@@ -3,17 +3,16 @@ import React, { PureComponent } from 'react';
 import './App.css';
 
 import state from '../../state';
+import { client } from '../../utils/Client';
 import Canvas from '../Canvas';
 import Sprites from '../Sprites';
 import UI from '../UI';
 
 export default class App extends PureComponent {
   onClick = e => {
-    const { client } = this.props;
-
     const point = state.project({ x: e.clientX, y: e.clientY });
 
-    client.send('moveTo', {
+    client().send('moveTo', {
       position: {
         x: Math.round(point.x),
         y: Math.round(point.y),

@@ -1,7 +1,11 @@
 import state from '../state';
 
+let instance = null;
+
 export default class Client {
   constructor() {
+    instance = this;
+
     this.lastId = 0;
 
     this.waits = new Map();
@@ -108,4 +112,8 @@ export default class Client {
       })
     );
   }
+}
+
+export function client() {
+  return instance;
 }

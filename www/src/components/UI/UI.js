@@ -3,10 +3,12 @@ import React, { PureComponent } from 'react';
 import './UI.scss';
 import Inventory from '../Inventory';
 import StatusBar from '../StatusBar';
+import ChatInput from '../ChatInput';
 
 export default class UI extends PureComponent {
   state = {
     isInventoryOpen: false,
+    isChatOpen: false,
   };
 
   componentDidMount() {
@@ -23,6 +25,15 @@ export default class UI extends PureComponent {
     }
 
     switch (e.code) {
+      case 'Enter': {
+        const { isChatOpen } = this.state;
+
+        this.setState({
+          isChatOpen: !isChatOpen,
+        });
+        break;
+      }
+
       case 'KeyI':
         this.setState({
           isInventoryOpen: !this.state.isInventoryOpen,
@@ -39,11 +50,12 @@ export default class UI extends PureComponent {
   };
 
   render() {
-    const { isInventoryOpen } = this.state;
+    const { isInventoryOpen, isChatOpen } = this.state;
 
     return (
       <div className="ui">
         <StatusBar />
+        {isChatOpen ? <ChatInput /> : null}
         {isInventoryOpen ? <Inventory onClose={this.onInventoryClose} /> : null}
       </div>
     );

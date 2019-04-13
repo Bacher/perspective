@@ -10,7 +10,7 @@ const objects = [
       x: 16,
       y: 24,
     },
-    img: createSprite('man'),
+    img: createSprite('player'),
   },
   {
     pos: {
