@@ -9,9 +9,13 @@ import UI from '../UI';
 
 export default class App extends PureComponent {
   onClick = e => {
+    const { client } = this.props;
+
     const point = state.project({ x: e.clientX, y: e.clientY });
 
-    state.moveTo(point);
+    client.send('moveTo', { position: point });
+
+    //state.moveTo(point);
   };
 
   render() {

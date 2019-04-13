@@ -8,6 +8,7 @@ export default class PlayerClient {
     this.chunkId = null;
     this.chunksIds = null;
     this.lastPosition = null;
+    this.moveTo = null;
 
     this.globalState = getGlobalState();
   }
@@ -16,6 +17,9 @@ export default class PlayerClient {
     switch (methodName) {
       case 'getCurrentState':
         return this.globalState.getPlayerStateSnapshot(this);
+      case 'moveTo':
+        this.moveTo = params.position;
+        return;
       default:
         throw new Error('Invalid method name');
     }

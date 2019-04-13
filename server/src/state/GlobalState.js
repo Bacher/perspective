@@ -2,14 +2,16 @@ import ChunkState, { formatObject } from './ChunkState';
 import { db } from '../Mongo';
 import { positionToChunkId, getAroundChunks } from '../utils/chunks';
 
-// const TICK_INTERVAL = 33;
-const TICK_INTERVAL = 333;
+const TICK_INTERVAL = 33;
+
+const BASE_PLAYER_SPEED = 20;
 
 let instance = null;
 
 export default class GlobalState {
   constructor() {
     instance = this;
+    this.time = 0;
     this.chunks = new Map();
     this.playerClients = new Map();
     this._getStateRequests = [];
@@ -110,35 +112,17 @@ export default class GlobalState {
 
     const time = (tickId * TICK_INTERVAL) / 1000;
 
-    await this.tick(tickId, time);
+    const delta = time - this.time;
+    this.time = time;
+
+    await this.tick({ tickId, time, delta });
 
     const remains = Math.max(0, TICK_INTERVAL - (Date.now() - start));
 
     setTimeout(this.startTick, remains);
   };
 
-  async tick(tickId, time) {
-    // for (const playerClient of this.playerClients.values()) {
-    //   const chunk = this.chunks.get(playerClient.chunkId);
-    //
-    //   const playerObject = chunk.gameObjects.get(playerClient.id);
-    //
-    //   const { x, y } = playerObject.position;
-    //
-    //   await chunk.updatePosition(playerObject, {
-    //     x: x + 2,
-    //     y: y + 1,
-    //   });
-    //
-    //   // Если изменилась позиция обхекта игрока, то надо пересчитать чанки в playerClient
-    //   playerClient.chunkId = playerObject.chunkId;
-    //   playerClient.chunksIds = getAroundChunks(playerObject.chunkId, 2);
-    //
-    //   for (const chunkId of playerClient.chunksIds) {
-    //     await this.getChunk(chunkId);
-    //   }
-    // }
-
+  async tick({ tickId, time, delta }) {
     const pig = await db().gameObjects.findOne({ type: 'pig' });
     pig.id = pig._id.toString();
 
@@ -151,6 +135,48 @@ export default class GlobalState {
       };
 
       await chunk.updatePosition(pig, position);
+    }
+
+    for (const playerClient of this.playerClients.values()) {
+      if (playerClient.moveTo) {
+        const chunk = this.chunks.get(playerClient.chunkId);
+
+        const playerObject = chunk.gameObjects.get(playerClient.id);
+        const { x, y } = playerObject.position;
+
+        const movement = {
+          x: playerClient.moveTo.x - x,
+          y: playerClient.moveTo.y - y,
+        };
+
+        const len = Math.sqrt(movement.x ** 2 + movement.y ** 2);
+
+        const maxStep = BASE_PLAYER_SPEED * delta;
+
+        let newPos;
+
+        if (len > maxStep) {
+          const factor = maxStep / len;
+
+          newPos = {
+            x: x + movement.x * factor,
+            y: y + movement.y * factor,
+          };
+        } else {
+          newPos = playerClient.moveTo;
+          playerClient.moveTo = null;
+        }
+
+        await chunk.updatePosition(playerObject, newPos);
+
+        // Если изменилась позиция объекта игрока, то надо пересчитать чанки в playerClient
+        playerClient.chunkId = playerObject.chunkId;
+        playerClient.chunksIds = getAroundChunks(playerObject.chunkId, 2);
+
+        for (const chunkId of playerClient.chunksIds) {
+          await this.getChunk(chunkId);
+        }
+      }
     }
 
     this.sendUpdates();

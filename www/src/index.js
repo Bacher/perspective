@@ -20,7 +20,7 @@ setTimeout(async () => {
 
   console.log('gameState:', gameState);
 
-  ReactDOM.render(<App />, document.getElementById('root'));
+  ReactDOM.render(<App client={client} />, document.getElementById('root'));
 
   state.applyGameState(gameState);
 }, 0);

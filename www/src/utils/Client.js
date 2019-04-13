@@ -23,15 +23,6 @@ export default class Client {
     });
   }
 
-  send(data) {
-    this.ws.send(
-      JSON.stringify({
-        jsonrpc: '2.0',
-        ...data,
-      })
-    );
-  }
-
   onMessage = async e => {
     const data = JSON.parse(e.data);
 
@@ -46,7 +37,7 @@ export default class Client {
         console.error(err);
 
         if (id) {
-          this.send({
+          this._send({
             id,
             error: {
               ...err,
@@ -58,7 +49,7 @@ export default class Client {
       }
 
       if (id) {
-        this.send({
+        this._send({
           id,
           result,
         });
@@ -84,14 +75,18 @@ export default class Client {
 
       this.waits.set(id, { resolve, reject });
 
-      this.ws.send(
-        JSON.stringify({
-          jsonrpc: '2.0',
-          id,
-          method: methodName,
-          params,
-        })
-      );
+      this._send({
+        id,
+        method: methodName,
+        params,
+      });
+    });
+  }
+
+  send(methodName, params) {
+    this._send({
+      method: methodName,
+      params,
     });
   }
 
@@ -103,5 +98,14 @@ export default class Client {
       default:
         throw new Error(`Invalid method [${methodName}]`);
     }
+  }
+
+  _send(data) {
+    this.ws.send(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        ...data,
+      })
+    );
   }
 }
