@@ -23,10 +23,12 @@ export default class State {
     this.matrixes = {
       rot: mat4.create(),
       tra: mat4.create(),
+      zoo: mat4.create(),
       per: mat4.create(),
       cam: mat4.create(),
       rotI: mat4.create(),
       traI: mat4.create(),
+      zooI: mat4.create(),
       perI: mat4.create(),
       camI: mat4.create(),
     };
@@ -93,16 +95,18 @@ export default class State {
 
     mat4.fromTranslation(
       this.matrixes.tra,
-      vec3.fromValues(
-        -this.position.x,
-        -this.position.y,
-        300 + 100 * this.scroll
-      )
+      vec3.fromValues(-this.position.x, -this.position.y, 0)
+    );
+
+    mat4.fromTranslation(
+      this.matrixes.zoo,
+      vec3.fromValues(0, 0, 300 + 100 * this.scroll)
     );
   }
 
   calcInvertMatrix() {
     mat4.invert(this.matrixes.perI, this.matrixes.per);
+    mat4.invert(this.matrixes.zooI, this.matrixes.zoo);
     mat4.invert(this.matrixes.rotI, this.matrixes.rot);
     mat4.invert(this.matrixes.traI, this.matrixes.tra);
     mat4.invert(this.matrixes.camI, this.matrixes.cam);
@@ -113,8 +117,9 @@ export default class State {
 
     // const mView = mPer.multiply(mTr).multiply(mRot);
     if (!isFixed) {
-      vec3.transformMat4(res, res, this.matrixes.rot);
       vec3.transformMat4(res, res, this.matrixes.tra);
+      vec3.transformMat4(res, res, this.matrixes.rot);
+      vec3.transformMat4(res, res, this.matrixes.zoo);
     }
 
     vec3.transformMat4(res, res, this.matrixes.cam);
@@ -165,8 +170,9 @@ export default class State {
       vec3.transformMat4(res, res, this.matrixes.perI);
     }
     vec3.transformMat4(res, res, this.matrixes.camI);
-    vec3.transformMat4(res, res, this.matrixes.traI);
+    vec3.transformMat4(res, res, this.matrixes.zooI);
     vec3.transformMat4(res, res, this.matrixes.rotI);
+    vec3.transformMat4(res, res, this.matrixes.traI);
 
     return {
       x: res[0],
