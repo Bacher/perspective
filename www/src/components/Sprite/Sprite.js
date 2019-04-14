@@ -7,7 +7,7 @@ import ChatMessage from '../ChatMessage';
 const offsets = {};
 
 export default function Sprite({ data }) {
-  const { type, position, chatMessage, isFixed } = data;
+  const { type, position, chatMessage, playerName, isFixed } = data;
 
   const pos = state.getScreenCoords(position, isFixed);
 
@@ -22,7 +22,12 @@ export default function Sprite({ data }) {
       }}
     >
       <img className="sprite__img" alt="" src={`assets/sprites/${type}.png`} />
-      {chatMessage ? <ChatMessage chatMessage={chatMessage} /> : null}
+      {playerName && !chatMessage ? (
+        <span className="sprite__title">{playerName}</span>
+      ) : null}
+      {chatMessage ? (
+        <ChatMessage playerName={playerName} chatMessage={chatMessage} />
+      ) : null}
     </i>
   );
 }

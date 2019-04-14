@@ -54,12 +54,19 @@ export default class GlobalState {
       playerObject = {
         type: 'player',
         position,
+        playerName: playerClient.username,
         chunkId: positionToChunkId(position),
       };
 
       await db().gameObjects.insertOne(playerObject);
 
       playerObject.id = playerObject._id.toString();
+
+      const chunk = this.getChunkIfLoaded(playerObject.chunkId);
+
+      if (chunk) {
+        chunk.addObject(playerObject);
+      }
 
       await db().players.insertOne({
         username: playerClient.username,
@@ -125,17 +132,20 @@ export default class GlobalState {
 
   async tick({ tickId, time, delta }) {
     const pig = await db().gameObjects.findOne({ type: 'pig' });
-    pig.id = pig._id.toString();
 
-    const chunk = this.chunks.get(pig.chunkId);
+    if (pig) {
+      pig.id = pig._id.toString();
 
-    if (chunk) {
-      const position = {
-        x: Math.round(730 + 50 * Math.cos(time)),
-        y: Math.round(650 + 50 * Math.sin(time)),
-      };
+      const chunk = this.chunks.get(pig.chunkId);
 
-      await chunk.updatePosition(pig, position);
+      if (chunk) {
+        const position = {
+          x: Math.round(730 + 50 * Math.cos(time)),
+          y: Math.round(650 + 50 * Math.sin(time)),
+        };
+
+        await chunk.updatePosition(pig, position);
+      }
     }
 
     for (const playerClient of this.playerClients.values()) {

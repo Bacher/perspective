@@ -11,7 +11,7 @@ export async function connect() {
 
   instance = {
     db,
-    gameObjects: db.collection('gameobject'),
+    gameObjects: db.collection('gameobjects'),
     players: db.collection('players'),
   };
 

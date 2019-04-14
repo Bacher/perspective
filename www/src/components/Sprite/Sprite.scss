@@ -5,4 +5,18 @@
     width: 30px;
     height: 30px;
   }
+
+  &__title {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    margin-top: -4px;
+    padding: 3px 5px;
+    border-radius: 2px;
+    font-size: 15px;
+    font-style: normal;
+    transform: translate(-50%, -100%);
+    color: #000;
+    background: #fff;
+  }
 }

@@ -111,6 +111,7 @@ export function formatObject(obj) {
     id: obj.id,
     type: obj.type,
     position: obj.position,
+    playerName: obj.playerName,
     chatMessage: obj.chatMessage,
   };
 }

@@ -32,7 +32,7 @@ export async function generateObjects() {
       y: 650,
     };
 
-    await db().gameObjects.insert({
+    await db().gameObjects.insertOne({
       type: 'pig',
       chunkId: positionToChunkId(position),
       position,
