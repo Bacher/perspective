@@ -2,8 +2,14 @@
   position: absolute;
 
   &__img {
+    display: block;
     width: 30px;
     height: 30px;
+
+    &_big {
+      width: 64px;
+      height: 64px;
+    }
   }
 
   &__title {

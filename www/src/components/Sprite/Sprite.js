@@ -1,4 +1,5 @@
 import React from 'react';
+import cn from 'classnames';
 
 import './Sprite.scss';
 import state from '../../state';
@@ -9,9 +10,12 @@ const offsets = {};
 export default function Sprite({ data }) {
   const { type, position, chatMessage, playerName, isFixed } = data;
 
+  const isBig = type === 'mine';
+
   const pos = state.getScreenCoords(position, isFixed);
 
-  const offset = offsets[type] || { x: 16, y: 24 };
+  const offset =
+    offsets[type] || (isBig ? { x: 32, y: -60 } : { x: 16, y: 24 });
 
   return (
     <i
@@ -21,7 +25,14 @@ export default function Sprite({ data }) {
         left: pos.x - offset.x,
       }}
     >
-      <img className="sprite__img" alt="" src={`assets/sprites/${type}.png`} />
+      <img
+        className={cn('sprite__img', {
+          sprite__img_big: isBig,
+        })}
+        alt=""
+        title={type}
+        src={`assets/sprites/${type}.png`}
+      />
       {playerName && !chatMessage ? (
         <span className="sprite__title">{playerName}</span>
       ) : null}

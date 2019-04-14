@@ -28,8 +28,8 @@ export async function generateObjects() {
 
   if (ADD_PIG) {
     const position = {
-      x: 730,
-      y: 650,
+      x: 700,
+      y: 710,
     };
 
     await db().gameObjects.insertOne({
