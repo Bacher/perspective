@@ -1,9 +1,13 @@
 export function parseSearchQuery() {
-  const pairs = document.location.search.substr(1).split('&');
+  const queryString = document.location.search.substr(1);
 
   const qs = {};
 
-  for (const pair of pairs) {
+  if (!queryString) {
+    return qs;
+  }
+
+  for (const pair of queryString.split('&')) {
     const [, key, value] = pair.match(/^([^=]+)(?:=(.*))?$/);
 
     qs[key] = value === undefined ? true : value;

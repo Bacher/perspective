@@ -8,7 +8,7 @@ export default class State {
     this.width = 600;
     this.height = 400;
 
-    this.angle = 20;
+    this.angle = 15;
     this.scroll = 0;
 
     this.isPers = true;
@@ -100,7 +100,7 @@ export default class State {
 
     mat4.fromTranslation(
       this.matrixes.zoo,
-      vec3.fromValues(0, 0, 300 + 100 * this.scroll)
+      vec3.fromValues(0, 0, 200 + 100 * this.scroll)
     );
   }
 
@@ -129,8 +129,8 @@ export default class State {
     }
 
     return {
-      x: res[0] * (this.isPers ? this.width : 1) + this.width / 2,
-      y: res[1] * (this.isPers ? this.height : 1) + this.height / 2,
+      x: res[0] * (this.isPers ? this.width / 2 : 1) + this.width / 2,
+      y: res[1] * (this.isPers ? this.height / 2 : 1) + this.height / 2,
       z: res[2],
     };
   }
@@ -144,8 +144,8 @@ export default class State {
     };
 
     if (this.isPers) {
-      point.x /= this.width;
-      point.y /= this.height;
+      point.x /= this.width / 2;
+      point.y /= this.height / 2;
     }
 
     const r1 = this.projectPoint({ ...point, z: 0.4 });
