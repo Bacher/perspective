@@ -24,20 +24,28 @@ export default class UI extends PureComponent {
       return;
     }
 
-    switch (e.code) {
-      case 'Enter': {
-        const { isChatOpen } = this.state;
+    const { isChatOpen } = this.state;
 
+    switch (e.code) {
+      case 'Escape':
+        if (isChatOpen) {
+          this.setState({
+            isChatOpen: false,
+          });
+        }
+        break;
+      case 'Enter':
         this.setState({
           isChatOpen: !isChatOpen,
         });
         break;
-      }
 
       case 'KeyI':
-        this.setState({
-          isInventoryOpen: !this.state.isInventoryOpen,
-        });
+        if (!isChatOpen) {
+          this.setState({
+            isInventoryOpen: !this.state.isInventoryOpen,
+          });
+        }
         break;
       default:
     }

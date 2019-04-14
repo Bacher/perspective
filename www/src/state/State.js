@@ -259,12 +259,9 @@ export default class State {
         obj.chunkId = chunk.id;
         const sprite = this.sprites.get(obj.id);
 
-        if (obj.type === 'player') {
-          console.log('Message:', obj.chatMessage);
-        }
-
         if (sprite) {
           sprite.position = obj.position;
+          sprite.chatMessage = obj.chatMessage;
         } else {
           this.sprites.set(obj.id, obj);
         }

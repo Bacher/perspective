@@ -2,7 +2,7 @@ import ChunkState, { formatObject } from './ChunkState';
 import { db } from '../Mongo';
 import { positionToChunkId, getAroundChunks } from '../utils/chunks';
 
-const TICK_INTERVAL = 33;
+const TICK_INTERVAL = 333;
 
 const BASE_PLAYER_SPEED = 20;
 
