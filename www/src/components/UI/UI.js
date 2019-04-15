@@ -1,9 +1,12 @@
 import React, { PureComponent } from 'react';
 
 import './UI.scss';
+
+import gameState from '../../gameState';
 import Inventory from '../Inventory';
 import StatusBar from '../StatusBar';
 import ChatInput from '../ChatInput';
+import ContextMenu from '../ContextMenu';
 
 export default class UI extends PureComponent {
   state = {
@@ -12,6 +15,7 @@ export default class UI extends PureComponent {
   };
 
   componentDidMount() {
+    gameState.comp.ui = this;
     window.addEventListener('keydown', this.onKeyDown);
   }
 
@@ -28,6 +32,8 @@ export default class UI extends PureComponent {
 
     switch (e.code) {
       case 'Escape':
+        gameState.closeContextMenu();
+
         if (isChatOpen) {
           this.setState({
             isChatOpen: false,
@@ -65,6 +71,7 @@ export default class UI extends PureComponent {
         <StatusBar />
         {isChatOpen ? <ChatInput /> : null}
         {isInventoryOpen ? <Inventory onClose={this.onInventoryClose} /> : null}
+        <ContextMenu />
       </div>
     );
   }

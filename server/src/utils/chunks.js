@@ -12,13 +12,13 @@ export function positionToChunkId({ x, y }) {
   return n * WORLD_CHUNK_SIZE + m;
 }
 
-export function getAroundChunks(chunkId, radius) {
+export function getAroundChunks(chunkId) {
   const chunks = [];
 
   const n = Math.floor(chunkId / WORLD_CHUNK_SIZE);
   const m = chunkId - n * WORLD_CHUNK_SIZE;
 
-  for (let mm = m - radius; mm <= m + radius; mm++) {
+  for (let mm = m - 3; mm <= m + 3; mm++) {
     let mmm = mm;
 
     if (mmm < 0) {
@@ -29,7 +29,7 @@ export function getAroundChunks(chunkId, radius) {
       mmm -= WORLD_CHUNK_SIZE;
     }
 
-    for (let nn = n - radius; nn <= n + radius; nn++) {
+    for (let nn = n - 2; nn <= n + 2; nn++) {
       if (nn >= 0 && nn < WORLD_CHUNK_SIZE) {
         chunks.push(nn * WORLD_CHUNK_SIZE + mmm);
       }

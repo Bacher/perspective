@@ -88,7 +88,7 @@ export default class GlobalState {
     playerClient.lastPosition = playerObject.position;
 
     playerClient.chunkId = chunkId;
-    playerClient.chunksIds = getAroundChunks(playerClient.chunkId, 2);
+    playerClient.chunksIds = getAroundChunks(playerClient.chunkId);
 
     this.playerClients.set(playerClient.id, playerClient);
 
@@ -183,7 +183,7 @@ export default class GlobalState {
         // Если изменилась позиция объекта игрока, то надо пересчитать чанки в playerClient
         playerClient.chunkId = playerObject.chunkId;
 
-        const chunksIds = getAroundChunks(playerObject.chunkId, 2);
+        const chunksIds = getAroundChunks(playerObject.chunkId);
 
         for (const chunkId of chunksIds) {
           if (!playerClient.chunksIds.includes(chunkId)) {

@@ -10,6 +10,10 @@
       width: 64px;
       height: 64px;
     }
+
+    &:hover {
+      outline: 1px solid #6086ce;
+    }
   }
 
   &__title {

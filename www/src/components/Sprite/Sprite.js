@@ -2,7 +2,7 @@ import React from 'react';
 import cn from 'classnames';
 
 import './Sprite.scss';
-import state from '../../state';
+import gameState from '../../gameState';
 import ChatMessage from '../ChatMessage';
 
 const offsets = {};
@@ -12,7 +12,7 @@ export default function Sprite({ data }) {
 
   const isBig = type === 'mine';
 
-  const pos = state.getScreenCoords(position, isFixed);
+  const pos = gameState.getScreenCoords(position, isFixed);
 
   const offset =
     offsets[type] || (isBig ? { x: 32, y: -60 } : { x: 16, y: 24 });

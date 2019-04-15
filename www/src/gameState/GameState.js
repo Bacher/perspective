@@ -1,7 +1,6 @@
 import { vec3, mat4 } from 'gl-matrix';
-import state from './index';
 
-export default class State {
+export default class GameState {
   constructor() {
     window.state = this;
 
@@ -76,6 +75,8 @@ export default class State {
         },
       },
     ];
+
+    this.comp = {};
   }
 
   applyMatrix() {
@@ -181,19 +182,15 @@ export default class State {
     };
   }
 
-  registerSpritesComponent(spritesComp) {
-    this.spritesComp = spritesComp;
-  }
-
   spritesUpdated() {
-    this.spritesComp.forceUpdate();
+    this.comp.sprites.forceUpdate();
   }
 
   moveTo({ x, y }) {
-    state.flag.position = { x, y };
-    state.flag.isHidden = false;
+    this.flag.position = { x, y };
+    this.flag.isHidden = false;
 
-    state.spritesUpdated();
+    this.spritesUpdated();
 
     const curX = this.position.x;
     const curY = this.position.y;
@@ -284,5 +281,27 @@ export default class State {
 
     this.applyMatrix();
     this.spritesUpdated();
+  }
+
+  openContextMenu(position) {
+    this.contextMenu = {
+      position,
+      items: [
+        {
+          text: 'Collect',
+        },
+        {
+          text: 'Harvest',
+        },
+      ],
+    };
+
+    this.comp.contextMenu.forceUpdate();
+  }
+
+  closeContextMenu() {
+    this.contextMenu = null;
+
+    this.comp.contextMenu.forceUpdate();
   }
 }

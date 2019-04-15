@@ -1,4 +1,4 @@
-import state from '../state';
+import gameState from '../gameState';
 
 const WORLD_CHUNK_SIZE = 1000;
 const CHUNK_SIZE = 100;
@@ -8,12 +8,15 @@ export function drawGrid(ctx, pos) {
   ctx.save();
   ctx.strokeStyle = '#ddd';
 
-  const screenLeft = state.project({ x: 0, y: 0 }).x;
-  const screenRight = state.project({ x: state.width, y: 0 }).x;
+  const screenLeft = gameState.project({ x: 0, y: 0 }).x;
+  const screenRight = gameState.project({ x: gameState.width, y: 0 }).x;
   const screenWidth = screenRight - screenLeft;
 
-  const screenTop = state.project({ x: state.width / 2, y: 0 }).y;
-  const screenBottom = state.project({ x: state.width / 2, y: state.height }).y;
+  const screenTop = gameState.project({ x: gameState.width / 2, y: 0 }).y;
+  const screenBottom = gameState.project({
+    x: gameState.width / 2,
+    y: gameState.height,
+  }).y;
   const screenHeight = screenTop - screenBottom;
 
   const x1 = Math.floor((pos.x - screenWidth / 2) / CHUNK_SIZE) * CHUNK_SIZE;
@@ -53,13 +56,13 @@ export function drawGrid(ctx, pos) {
 
   for (let x = x1; x < x2; x += CHUNK_SIZE) {
     for (let y = y1; y < y2; y += CHUNK_SIZE) {
-      const point = state.getScreenCoords({ x, y });
+      const point = gameState.getScreenCoords({ x, y });
 
       ctx.fillText(`(${x},${y})`, point.x + 2, point.y - 2);
 
       const chunkId = positionToChunkId({ x, y });
 
-      const point2 = state.getScreenCoords({
+      const point2 = gameState.getScreenCoords({
         x: x + CHUNK_SIZE / 2,
         y: y + CHUNK_SIZE / 2,
       });
@@ -78,8 +81,8 @@ export function drawGrid(ctx, pos) {
 }
 
 function drawLine(ctx, p1, p2, isStrong) {
-  const p1n = state.getScreenCoords(p1);
-  const p2n = state.getScreenCoords(p2);
+  const p1n = gameState.getScreenCoords(p1);
+  const p2n = gameState.getScreenCoords(p2);
 
   if (
     Number.isFinite(p1n.x) &&

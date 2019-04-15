@@ -2,15 +2,23 @@ import React, { PureComponent } from 'react';
 
 import './App.css';
 
-import state from '../../state';
+import gameState from '../../gameState';
 import { client } from '../../utils/Client';
 import Canvas from '../Canvas';
 import Sprites from '../Sprites';
 import UI from '../UI';
 
 export default class App extends PureComponent {
+  componentDidMount() {
+    window.addEventListener('click', this.onGlobalClick);
+  }
+
+  onGlobalClick = () => {
+    gameState.closeContextMenu();
+  };
+
   onClick = e => {
-    const point = state.project({ x: e.clientX, y: e.clientY });
+    const point = gameState.project({ x: e.clientX, y: e.clientY });
 
     client().send('moveTo', {
       position: {
@@ -19,7 +27,12 @@ export default class App extends PureComponent {
       },
     });
 
-    //state.moveTo(point);
+    //gameState.moveTo(point);
+  };
+
+  onContextMenu = e => {
+    e.preventDefault();
+    gameState.closeContextMenu();
   };
 
   render() {
@@ -27,9 +40,10 @@ export default class App extends PureComponent {
       <div
         className="container"
         style={{
-          width: state.width,
-          height: state.height,
+          width: gameState.width,
+          height: gameState.height,
         }}
+        onContextMenu={this.onContextMenu}
       >
         <div className="map" onClick={this.onClick}>
           <Canvas />

@@ -1,6 +1,6 @@
 import React, { PureComponent, createRef } from 'react';
 
-import state from '../../state';
+import gameState from '../../gameState';
 import { drawGrid } from '../../utils/grid';
 import { drawDot } from '../../utils/dot';
 
@@ -17,11 +17,11 @@ export default class Canvas extends PureComponent {
     const ctx = this.canvasRef.current.getContext('2d');
 
     ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, state.width, state.height);
+    ctx.fillRect(0, 0, gameState.width, gameState.height);
 
-    drawGrid(ctx, state.position);
+    drawGrid(ctx, gameState.position);
 
-    for (const dot of state.dots) {
+    for (const dot of gameState.dots) {
       drawDot(ctx, dot);
     }
 
@@ -33,8 +33,8 @@ export default class Canvas extends PureComponent {
       <canvas
         className="canvas"
         ref={this.canvasRef}
-        width={state.width}
-        height={state.height}
+        width={gameState.width}
+        height={gameState.height}
       />
     );
   }

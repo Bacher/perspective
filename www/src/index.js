@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import 'normalize.css/normalize.css';
 
 import './index.scss';
-import state from './state';
+import gameState from './gameState';
 import App from './components/App';
 import Client from './utils/Client';
 import { parseSearchQuery } from './utils/querystring';
@@ -19,11 +19,11 @@ setTimeout(async () => {
     username: params.username || 'John',
   });
 
-  const gameState = await client.request('getCurrentState');
+  const currentGameState = await client.request('getCurrentState');
 
-  console.log('gameState:', gameState);
+  console.log('gameState:', currentGameState);
 
   ReactDOM.render(<App />, document.getElementById('root'));
 
-  state.applyGameState(gameState);
+  gameState.applyGameState(currentGameState);
 }, 0);

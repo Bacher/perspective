@@ -1,4 +1,4 @@
-import state from '../state';
+import gameState from '../gameState';
 
 let instance = null;
 
@@ -97,7 +97,7 @@ export default class Client {
   handleRequest(methodName, params) {
     switch (methodName) {
       case 'worldUpdates':
-        state.updateWorld(params);
+        gameState.updateWorld(params);
         break;
       default:
         throw new Error(`Invalid method [${methodName}]`);
