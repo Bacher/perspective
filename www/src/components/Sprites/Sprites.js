@@ -1,5 +1,7 @@
 import React, { PureComponent } from 'react';
 
+import './Sprites.scss';
+
 import gameState from '../../gameState';
 import Sprite from '../Sprite';
 
@@ -24,7 +26,7 @@ export default class Sprites extends PureComponent {
 
   render() {
     return (
-      <div onContextMenu={this.onContextMenu}>
+      <div className="sprites" onContextMenu={this.onContextMenu}>
         {Array.from(gameState.sprites.values()).map(sprite =>
           sprite.isHidden ? null : <Sprite key={sprite.id} data={sprite} />
         )}

@@ -6,7 +6,7 @@ const SUB = 10;
 
 export function drawGrid(ctx, pos) {
   ctx.save();
-  ctx.strokeStyle = '#ddd';
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
 
   const screenLeft = gameState.project({ x: 0, y: 0 }).x;
   const screenRight = gameState.project({ x: gameState.width, y: 0 }).x;
@@ -52,7 +52,7 @@ export function drawGrid(ctx, pos) {
   }
 
   ctx.font = '10px Arial';
-  ctx.fillStyle = '#333';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
 
   for (let x = x1; x < x2; x += CHUNK_SIZE) {
     for (let y = y1; y < y2; y += CHUNK_SIZE) {
@@ -71,7 +71,7 @@ export function drawGrid(ctx, pos) {
       ctx.font = '14px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#fbc40b';
+      ctx.fillStyle = 'rgba(251,196,11,0.8)';
       ctx.fillText(chunkId, point2.x, point2.y);
       ctx.restore();
     }
@@ -90,7 +90,9 @@ function drawLine(ctx, p1, p2, isStrong) {
     Number.isFinite(p2n.x) &&
     Number.isFinite(p2n.y)
   ) {
-    ctx.strokeStyle = isStrong ? '#888' : ' #ddd';
+    ctx.strokeStyle = isStrong
+      ? 'rgba(255,255,255,0.4)'
+      : 'rgba(255,255,255,0.25)';
 
     ctx.beginPath();
     ctx.moveTo(p1n.x, p1n.y);

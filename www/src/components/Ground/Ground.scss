@@ -1,0 +1,21 @@
+.ground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  // overflow: hidden;
+  perspective: 300px;
+
+  &__inner {
+    position: absolute;
+    top: -55px;
+    left: -70px;
+    right: -70px;
+    bottom: 20px;
+    transform: rotateX(15deg);
+    transform-style: preserve-3d;
+    transform-origin: 370px 255px;
+    background: url('/assets/textures/ground.jpg') repeat;
+  }
+}

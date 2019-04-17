@@ -6,6 +6,10 @@ export default class GameState {
 
     this.width = 600;
     this.height = 400;
+    this.viewPortOffset = {
+      x: 0,
+      y: 0,
+    };
 
     this.angle = 15;
     this.scroll = 0;
@@ -136,6 +140,13 @@ export default class GameState {
     };
   }
 
+  normalizeCoords(pos) {
+    return {
+      x: pos.x - this.viewPortOffset.x,
+      y: pos.y - this.viewPortOffset.y,
+    };
+  }
+
   project(screenCoords) {
     this.calcInvertMatrix();
 
@@ -184,6 +195,10 @@ export default class GameState {
 
   spritesUpdated() {
     this.comp.sprites.forceUpdate();
+
+    if (this.comp.ground) {
+      this.comp.ground.forceUpdate();
+    }
   }
 
   moveTo({ x, y }) {

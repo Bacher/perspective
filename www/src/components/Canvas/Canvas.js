@@ -4,7 +4,7 @@ import gameState from '../../gameState';
 import { drawGrid } from '../../utils/grid';
 import { drawDot } from '../../utils/dot';
 
-import './Canvas.css';
+import './Canvas.scss';
 
 export default class Canvas extends PureComponent {
   canvasRef = createRef();
@@ -16,8 +16,7 @@ export default class Canvas extends PureComponent {
   draw = () => {
     const ctx = this.canvasRef.current.getContext('2d');
 
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, gameState.width, gameState.height);
+    ctx.clearRect(0, 0, gameState.width, gameState.height);
 
     drawGrid(ctx, gameState.position);
 

@@ -1,0 +1,27 @@
+.container {
+  position: relative;
+  margin: 20px 0 0 20px;
+  user-select: none;
+  cursor: initial;
+}
+
+.map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  // overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    outline: 1px solid #f00;
+    pointer-events: none;
+    z-index: 10;
+  }
+}
