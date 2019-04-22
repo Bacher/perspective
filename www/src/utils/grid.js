@@ -111,3 +111,37 @@ export function positionToChunkId({ x, y }) {
 
   return n * WORLD_CHUNK_SIZE + m;
 }
+
+export function drawZone(ctx, { x, y }, { width, height }) {
+  const p1 = {
+    x: Math.floor((x - width / 2) / 10) * 10,
+    y: Math.floor((y - height / 2) / 10) * 10,
+  };
+
+  const p2 = {
+    x: p1.x + width,
+    y: p1.y + height,
+  };
+
+  const s1 = gameState.getScreenCoords(p1);
+  const s2 = gameState.getScreenCoords({
+    x: p2.x,
+    y: p1.y,
+  });
+  const s3 = gameState.getScreenCoords(p2);
+  const s4 = gameState.getScreenCoords({
+    x: p1.x,
+    y: p2.y,
+  });
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(s1.x, s1.y);
+  ctx.lineTo(s2.x, s2.y);
+  ctx.lineTo(s3.x, s3.y);
+  ctx.lineTo(s4.x, s4.y);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0, 255, 0, 0.6)';
+  ctx.fill();
+  ctx.restore();
+}

@@ -1,4 +1,5 @@
 import { vec3, mat4 } from 'gl-matrix';
+import gameState from './index';
 
 export default class GameState {
   constructor() {
@@ -81,6 +82,19 @@ export default class GameState {
     ];
 
     this.comp = {};
+
+    this.ui = {
+      chat: false,
+      inventory: false,
+      buildMenu: false,
+    };
+
+    this.cursor = {
+      mode: 'default',
+      coords: { x: 0, y: 0 },
+      position: { x: 0, y: 0 },
+      meta: null,
+    };
   }
 
   applyMatrix() {
@@ -257,6 +271,7 @@ export default class GameState {
 
     this.applyMatrix();
     this.spritesUpdated();
+    this.updateCursor();
   }
 
   updateWorld(data) {
@@ -296,6 +311,7 @@ export default class GameState {
 
     this.applyMatrix();
     this.spritesUpdated();
+    this.updateCursor();
   }
 
   openContextMenu(position) {
@@ -318,5 +334,24 @@ export default class GameState {
     this.contextMenu = null;
 
     this.comp.contextMenu.forceUpdate();
+  }
+
+  updateCursor() {
+    this.cursor.position = this.project(this.cursor.coords);
+  }
+
+  setCursorCoords(coords) {
+    gameState.cursor.coords = coords;
+    gameState.cursor.position = gameState.project(coords);
+  }
+
+  updateUI(callback) {
+    this.ui = callback(this.ui);
+    this.comp.ui.forceUpdate();
+  }
+
+  setCursorMode(mode, meta) {
+    this.cursor.mode = mode;
+    this.cursor.meta = meta || null;
   }
 }

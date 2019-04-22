@@ -1,0 +1,19 @@
+.build-menu {
+  position: absolute;
+  top: 50px;
+  left: 300px;
+  width: 240px;
+  height: 300px;
+  background: #fff;
+
+  &__list {
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    padding: 10px;
+    cursor: pointer;
+  }
+}

@@ -1,0 +1,25 @@
+.toolbar {
+  position: absolute;
+  display: flex;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  &__action {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    background: #aaa;
+    cursor: pointer;
+
+    &_build::after {
+      display: block;
+      content: '';
+      width: 32px;
+      height: 32px;
+      background: url('/assets/textures/hammer.png');
+    }
+  }
+}

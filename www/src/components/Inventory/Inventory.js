@@ -2,7 +2,16 @@ import React, { PureComponent } from 'react';
 
 import './Inventory.scss';
 
+import gameState from '../../gameState';
+
 export default class Inventory extends PureComponent {
+  onCloseClick = () => {
+    gameState.updateUI(ui => ({
+      ...ui,
+      inventory: false,
+    }));
+  };
+
   renderItem(name) {
     return (
       <li key={name} className="inventory__item">
@@ -26,7 +35,7 @@ export default class Inventory extends PureComponent {
           <button
             className="inventory__title-close"
             title="close"
-            onClick={this.props.onClose}
+            onClick={this.onCloseClick}
           />
         </div>
         <ul className="inventory__list">

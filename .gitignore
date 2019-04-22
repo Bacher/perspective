@@ -12,6 +12,7 @@ node_modules
 /build
 
 # misc
+*.swp
 .DS_Store
 .env.local
 .env.development.local
