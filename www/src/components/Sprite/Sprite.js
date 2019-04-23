@@ -2,36 +2,68 @@ import React from 'react';
 import cn from 'classnames';
 
 import './Sprite.scss';
+
 import gameState from '../../gameState';
 import ChatMessage from '../ChatMessage';
 
-const offsets = {};
+const BASE_CELL_SIZE = 12;
 
 export default function Sprite({ data }) {
-  const { type, position, chatMessage, playerName, isFixed } = data;
+  const {
+    type,
+    position,
+    chatMessage,
+    playerName,
+    isCentered,
+    isFixed,
+    isPassive,
+    opacity,
+  } = data;
 
-  const isBig = type === 'mine';
+  const size = data.size || 2;
 
   const pos = gameState.getScreenCoords(position, isFixed);
 
-  const offset =
-    offsets[type] || (isBig ? { x: 32, y: -60 } : { x: 16, y: 24 });
+  let offset;
+
+  if (isCentered) {
+    offset = {
+      v: 0.5,
+      h: 0.5,
+    };
+  } else {
+    offset = {
+      v: 0.75,
+      h: 0.5,
+    };
+  }
+
+  const imgStyles = {
+    width: size * BASE_CELL_SIZE,
+    height: size * BASE_CELL_SIZE,
+    transform: `translate(-${offset.h * 100}%, -${offset.v * 100}%)`,
+  };
+
+  if (opacity) {
+    imgStyles.opacity = opacity;
+  }
 
   return (
     <i
       className="sprite"
       style={{
-        top: pos.y - offset.y,
-        left: pos.x - offset.x,
+        top: pos.y,
+        left: pos.x,
       }}
     >
       <img
         className={cn('sprite__img', {
-          sprite__img_big: isBig,
+          sprite__img_active: !isPassive,
         })}
         alt=""
         title={type}
         src={`assets/sprites/${type}.png`}
+        style={imgStyles}
       />
       {playerName && !chatMessage ? (
         <span className="sprite__title">{playerName}</span>

@@ -6,7 +6,7 @@ const objects = [
       z: 0,
     },
     fixed: true,
-    center: {
+    isCentered: {
       x: 16,
       y: 24,
     },

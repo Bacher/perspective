@@ -343,6 +343,7 @@ export default class GameState {
   setCursorCoords(coords) {
     gameState.cursor.coords = coords;
     gameState.cursor.position = gameState.project(coords);
+    this.spritesUpdated();
   }
 
   updateUI(callback) {

@@ -82,6 +82,14 @@ export default class App extends PureComponent {
           }));
         }
         break;
+      case 'KeyB':
+        if (!gameState.ui.chat) {
+          gameState.updateUI(ui => ({
+            ...ui,
+            buildMenu: !ui.buildMenu,
+          }));
+        }
+        break;
       default:
     }
   };

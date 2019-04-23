@@ -3,15 +3,8 @@
 
   &__img {
     display: block;
-    width: 30px;
-    height: 30px;
 
-    &_big {
-      width: 64px;
-      height: 64px;
-    }
-
-    &:hover {
+    &_active:hover {
       outline: 1px solid #6086ce;
     }
   }
