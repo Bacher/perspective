@@ -210,6 +210,10 @@ export default class GlobalState {
               id: generateId(),
               type: 'building-frame',
               position,
+              size: {
+                x: 5,
+                y: 5,
+              },
               meta: {
                 building,
               },

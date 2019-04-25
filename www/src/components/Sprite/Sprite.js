@@ -8,13 +8,19 @@ import ChatMessage from '../ChatMessage';
 
 const BASE_CELL_SIZE = 11;
 
+const offsets = {
+  player: {
+    h: 0.5,
+    v: 0.7,
+  },
+};
+
 export default function Sprite({ data }) {
   const {
     type,
     position,
     chatMessage,
     playerName,
-    isCentered,
     isFixed,
     noAction,
     opacity,
@@ -51,19 +57,10 @@ export default function Sprite({ data }) {
     scale = Math.pow(pos.y - posFar.y, 0.7);
   }
 
-  let offset;
-
-  if (isCentered) {
-    offset = {
-      v: 0.5,
-      h: 0.5,
-    };
-  } else {
-    offset = {
-      v: 0.75,
-      h: 0.5,
-    };
-  }
+  const offset = offsets[type] || {
+    v: 0.5,
+    h: 0.5,
+  };
 
   const imgStyles = {
     width: size.x * BASE_CELL_SIZE * scale,

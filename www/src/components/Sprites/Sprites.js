@@ -58,7 +58,6 @@ export default class Sprites extends PureComponent {
             type: cursor.meta.building,
             position,
             size,
-            isCentered: true,
             noAction: true,
             opacity: 0.7,
           }}
