@@ -10,14 +10,14 @@ export function drawGrid(ctx, pos) {
 
   const screenLeft = gameState.project({ x: 0, y: 0 }).x;
   const screenRight = gameState.project({ x: gameState.width, y: 0 }).x;
-  const screenWidth = screenRight - screenLeft;
+  const screenWidth = Math.abs(screenRight - screenLeft);
 
   const screenTop = gameState.project({ x: gameState.width / 2, y: 0 }).y;
   const screenBottom = gameState.project({
     x: gameState.width / 2,
     y: gameState.height,
   }).y;
-  const screenHeight = screenTop - screenBottom;
+  const screenHeight = Math.abs(screenTop - screenBottom);
 
   const x1 = Math.floor((pos.x - screenWidth / 2) / CHUNK_SIZE) * CHUNK_SIZE;
   const x2 = Math.ceil((pos.x + screenWidth / 2) / CHUNK_SIZE) * CHUNK_SIZE;

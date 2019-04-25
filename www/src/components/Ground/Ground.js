@@ -24,7 +24,7 @@ export default class Ground extends PureComponent {
         <div
           className="ground__inner"
           style={{
-            backgroundPosition: `${-coords.x}px ${coords.y}px`,
+            backgroundPosition: `${-coords.x}px ${-coords.y}px`,
           }}
         />
       </div>

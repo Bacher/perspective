@@ -15,6 +15,7 @@ export async function connect() {
     players: db.collection('players'),
   };
 
+  await instance.gameObjects.createIndex({ id: 1 }, { unique: true });
   await instance.gameObjects.createIndex({ chunkId: 1 });
   await instance.players.createIndex({ username: 1 }, { unique: true });
 }

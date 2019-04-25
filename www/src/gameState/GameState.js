@@ -108,9 +108,9 @@ export default class GameState {
       500
     );
 
-    mat4.fromScaling(this.matrixes.cam, [-1, 1, 1]);
+    mat4.fromScaling(this.matrixes.cam, [-1, -1, 1]);
 
-    mat4.fromXRotation(this.matrixes.rot, (angle * Math.PI) / 180);
+    mat4.fromXRotation(this.matrixes.rot, (-angle * Math.PI) / 180);
 
     mat4.fromTranslation(
       this.matrixes.tra,
