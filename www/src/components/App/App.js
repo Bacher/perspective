@@ -106,6 +106,7 @@ export default class App extends PureComponent {
 
   onContextMenu = e => {
     e.preventDefault();
+    gameState.setCursorMode('default');
     gameState.closeContextMenu();
   };
 

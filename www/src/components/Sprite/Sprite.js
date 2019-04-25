@@ -6,7 +6,7 @@ import './Sprite.scss';
 import gameState from '../../gameState';
 import ChatMessage from '../ChatMessage';
 
-const BASE_CELL_SIZE = 12;
+const BASE_CELL_SIZE = 11;
 
 export default function Sprite({ data }) {
   const {
@@ -16,7 +16,7 @@ export default function Sprite({ data }) {
     playerName,
     isCentered,
     isFixed,
-    isPassive,
+    noAction,
     opacity,
   } = data;
 
@@ -37,6 +37,20 @@ export default function Sprite({ data }) {
 
   const pos = gameState.getScreenCoords(centerPosition, isFixed);
 
+  let scale = 1;
+
+  if (!isFixed) {
+    const posFar = gameState.getScreenCoords(
+      {
+        x: centerPosition.x,
+        y: centerPosition.y - 1,
+      },
+      isFixed
+    );
+
+    scale = Math.pow(pos.y - posFar.y, 0.7);
+  }
+
   let offset;
 
   if (isCentered) {
@@ -52,8 +66,8 @@ export default function Sprite({ data }) {
   }
 
   const imgStyles = {
-    width: size * BASE_CELL_SIZE,
-    height: size * BASE_CELL_SIZE,
+    width: size.x * BASE_CELL_SIZE * scale,
+    height: size.y * BASE_CELL_SIZE * scale,
     transform: `translate(-${offset.h * 100}%, -${offset.v * 100}%)`,
   };
 
@@ -71,7 +85,7 @@ export default function Sprite({ data }) {
     >
       <img
         className={cn('sprite__img', {
-          sprite__img_active: !isPassive,
+          'sprite__img_no-action': noAction,
         })}
         alt=""
         title={type}

@@ -4,8 +4,12 @@
   &__img {
     display: block;
 
-    &_active:hover {
+    &:hover {
       outline: 1px solid #6086ce;
+    }
+
+    &_no-action {
+      pointer-events: none;
     }
   }
 

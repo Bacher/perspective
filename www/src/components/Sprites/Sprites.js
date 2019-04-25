@@ -59,7 +59,7 @@ export default class Sprites extends PureComponent {
             position,
             size,
             isCentered: true,
-            isPassive: true,
+            noAction: true,
             opacity: 0.7,
           }}
         />

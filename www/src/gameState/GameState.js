@@ -354,5 +354,7 @@ export default class GameState {
   setCursorMode(mode, meta) {
     this.cursor.mode = mode;
     this.cursor.meta = meta || null;
+
+    this.spritesUpdated();
   }
 }
