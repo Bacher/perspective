@@ -41,12 +41,22 @@ export default class App extends PureComponent {
 
     const point = gameState.project(canvasCoords);
 
-    client().send('moveTo', {
-      position: {
-        x: Math.round(point.x),
-        y: Math.round(point.y),
-      },
-    });
+    const position = {
+      x: Math.round(point.x),
+      y: Math.round(point.y),
+    };
+
+    if (gameState.cursor.mode === 'build') {
+      client().send('createBuildingFrame', {
+        position,
+        building: gameState.cursor.meta.building,
+      });
+      gameState.setCursorMode('default');
+    } else {
+      client().send('moveTo', {
+        position,
+      });
+    }
 
     //gameState.moveTo(point);
   };

@@ -1,6 +1,6 @@
-import { ObjectId } from 'mongodb';
 import { db } from '../Mongo';
 import { positionToChunkId } from '../utils/chunks';
+import generateId from '../utils/generateId';
 
 const ADD_TREES = false;
 const ADD_PIG = false;
@@ -17,6 +17,7 @@ export async function generateObjects() {
       };
 
       items.push({
+        id: generateId(),
         type: 'tree',
         chunkId: positionToChunkId(position),
         position,
@@ -25,7 +26,7 @@ export async function generateObjects() {
 
     await db().gameObjects.insertMany(items);
 
-    console.log('Generating trees complete');
+    console.log('Generating trees completed');
   }
 
   if (ADD_PIG) {
@@ -35,12 +36,13 @@ export async function generateObjects() {
     };
 
     await db().gameObjects.insertOne({
+      id: generateId(),
       type: 'pig',
       chunkId: positionToChunkId(position),
       position,
     });
 
-    console.log('Generating pig complete');
+    console.log('Generating pig completed');
   }
 
   if (ADD_HOME) {
@@ -50,12 +52,13 @@ export async function generateObjects() {
     };
 
     await db().gameObjects.insertOne({
+      id: generateId(),
       type: 'home',
       chunkId: positionToChunkId(position),
       position,
-      ownerId: ObjectId('5cb39d8bf65b6779edd044a7'),
+      ownerId: 'UNKNOWN',
     });
 
-    console.log('Generating home complete');
+    console.log('Generating home completed');
   }
 }

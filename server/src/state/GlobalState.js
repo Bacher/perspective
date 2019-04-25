@@ -1,6 +1,7 @@
 import ChunkState, { formatObject } from './ChunkState';
 import { db } from '../Mongo';
 import { positionToChunkId, getAroundChunks } from '../utils/chunks';
+import generateId from '../utils/generateId';
 
 const TICK_INTERVAL = 333;
 
@@ -15,8 +16,10 @@ export default class GlobalState {
     this.chunks = new Map();
     this.playerClients = new Map();
     this._getStateRequests = [];
+    this.newObjects = new Set();
     this.needSave = new Set();
     this.tickActions = [];
+    this.lastGeneratedIndex = 0;
 
     this.lastTick = 0;
   }
@@ -52,6 +55,7 @@ export default class GlobalState {
       };
 
       playerObject = {
+        id: generateId(),
         type: 'player',
         position,
         playerName: playerClient.username,
@@ -59,8 +63,6 @@ export default class GlobalState {
       };
 
       await db().gameObjects.insertOne(playerObject);
-
-      playerObject.id = playerObject._id.toString();
 
       const chunk = this.getChunkIfLoaded(playerObject.chunkId);
 
@@ -70,14 +72,12 @@ export default class GlobalState {
 
       await db().players.insertOne({
         username: playerClient.username,
-        gameObjectId: playerObject._id,
+        gameObjectId: playerObject.id,
       });
     } else {
       playerObject = await db().gameObjects.findOne({
-        _id: player.gameObjectId,
+        id: player.gameObjectId,
       });
-
-      playerObject.id = playerObject._id.toString();
     }
 
     const playerId = playerObject.id;
@@ -134,8 +134,6 @@ export default class GlobalState {
     const pig = await db().gameObjects.findOne({ type: 'pig' });
 
     if (pig) {
-      pig.id = pig._id.toString();
-
       const chunk = this.chunks.get(pig.chunkId);
 
       if (chunk) {
@@ -195,6 +193,33 @@ export default class GlobalState {
 
         for (const chunkId of playerClient.chunksIds) {
           await this.getChunk(chunkId);
+        }
+      }
+
+      if (playerClient.action) {
+        switch (playerClient.action.type) {
+          case 'createBuildingFrame':
+            const { position, building } = playerClient.action;
+            // TODO: Add range check
+
+            const chunkId = positionToChunkId(playerClient.action.position);
+
+            const chunk = this.getChunkForce(chunkId);
+
+            const obj = {
+              id: generateId(),
+              type: 'building-frame',
+              position,
+              meta: {
+                building,
+              },
+            };
+
+            chunk.addObject(obj);
+
+            this.newObjects.add(obj);
+
+            playerClient.action = null;
         }
       }
     }
@@ -332,6 +357,16 @@ export default class GlobalState {
     return chunk;
   }
 
+  getChunkForce(id) {
+    const chunk = this.chunks.get(id);
+
+    if (!chunk) {
+      throw new Error('Chunk not loaded');
+    }
+
+    return chunk;
+  }
+
   getChunkIfLoaded(id) {
     return this.chunks.get(id) || null;
   }
@@ -353,21 +388,35 @@ export default class GlobalState {
   }
 
   async saveObjects() {
-    await Promise.all(
-      Array.from(this.needSave).map(obj =>
-        db().gameObjects.updateOne(
-          { _id: obj._id },
-          {
-            $set: {
-              chunkId: obj.chunkId,
-              position: obj.position,
-            },
-          }
-        )
-      )
-    );
+    if (this.newObjects.size) {
+      await Promise.all(
+        Array.from(this.newObjects).map(obj => db().gameObjects.insertOne(obj))
+      );
+    }
 
-    this.needSave = new Set();
+    if (this.needSave.size) {
+      await Promise.all(
+        Array.from(this.needSave)
+          .filter(obj => !this.newObjects.has(obj))
+          .map(obj =>
+            db().gameObjects.updateOne(
+              { id: obj.id },
+              {
+                $set: {
+                  chunkId: obj.chunkId,
+                  position: obj.position,
+                },
+              }
+            )
+          )
+      );
+
+      this.needSave = new Set();
+    }
+
+    if (this.newObjects.size) {
+      this.newObjects = new Set();
+    }
   }
 
   updateTextFrom(playerClient, text) {

@@ -31,11 +31,7 @@ export default class ChunkState {
       })
       .toArray();
 
-    const items = objects.map(obj => {
-      obj.id = obj._id.toString();
-
-      return [obj.id, obj];
-    });
+    const items = objects.map(obj => [obj.id, obj]);
 
     this.gameObjects = new Map(items);
   }
