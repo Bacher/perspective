@@ -42,8 +42,8 @@ export default class App extends PureComponent {
     const point = gameState.project(canvasCoords);
 
     const position = {
-      x: Math.round(point.x),
-      y: Math.round(point.y),
+      x: Math.floor(point.x / 10) * 10,
+      y: Math.floor(point.y / 10) * 10,
     };
 
     if (gameState.cursor.mode === 'build') {

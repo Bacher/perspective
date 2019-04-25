@@ -31,14 +31,23 @@ export default class Canvas extends PureComponent {
 
       switch (meta.building) {
         case 'lumber-mill':
-          size = { width: 50, height: 50 };
+          size = { x: 5, y: 5 };
           break;
         default:
           console.error(`Invalid building: [${meta.building}]`);
       }
 
       if (size) {
-        drawZone(ctx, gameState.cursor.position, size);
+        const { position } = gameState.cursor;
+
+        drawZone(
+          ctx,
+          {
+            x: Math.floor(position.x / 10) * 10,
+            y: Math.floor(position.y / 10) * 10,
+          },
+          size
+        );
       }
     }
 

@@ -20,9 +20,22 @@ export default function Sprite({ data }) {
     opacity,
   } = data;
 
-  const size = data.size || 2;
+  const size = data.size || { x: 2, y: 2 };
 
-  const pos = gameState.getScreenCoords(position, isFixed);
+  const centerPosition = {
+    x: position.x,
+    y: position.y,
+  };
+
+  if (size.x % 2 !== 0) {
+    centerPosition.x += 5;
+  }
+
+  if (size.y % 2 !== 0) {
+    centerPosition.y += 5;
+  }
+
+  const pos = gameState.getScreenCoords(centerPosition, isFixed);
 
   let offset;
 

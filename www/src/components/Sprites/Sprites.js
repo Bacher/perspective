@@ -30,15 +30,34 @@ export default class Sprites extends PureComponent {
     const { cursor } = gameState;
 
     if (cursor.mode === 'build') {
+      const size = {
+        x: 5,
+        y: 5,
+      };
+
+      const position = {
+        x: cursor.position.x / 10,
+        y: cursor.position.y / 10,
+      };
+
+      if (size.x % 2 === 0) {
+        position.x = Math.round(position.x) * 10;
+      } else {
+        position.x = Math.floor(position.x) * 10;
+      }
+
+      if (size.y % 2 === 0) {
+        position.y = Math.round(position.y) * 10;
+      } else {
+        position.y = Math.floor(position.y) * 10;
+      }
+
       building = (
         <Sprite
           data={{
             type: cursor.meta.building,
-            position: {
-              x: Math.round(cursor.position.x / 10) * 10,
-              y: Math.round(cursor.position.y / 10) * 10,
-            },
-            size: 5,
+            position,
+            size,
             isCentered: true,
             isPassive: true,
             opacity: 0.7,
