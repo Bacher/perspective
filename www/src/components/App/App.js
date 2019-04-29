@@ -34,6 +34,10 @@ export default class App extends PureComponent {
   };
 
   onClick = e => {
+    if (e.defaultPrevented) {
+      return;
+    }
+
     const canvasCoords = gameState.normalizeCoords({
       x: e.clientX,
       y: e.clientY,
@@ -41,18 +45,23 @@ export default class App extends PureComponent {
 
     const point = gameState.project(canvasCoords);
 
-    const position = {
-      x: Math.floor(point.x / 10) * 10,
-      y: Math.floor(point.y / 10) * 10,
-    };
-
     if (gameState.cursor.mode === 'build') {
+      const position = {
+        x: Math.floor(point.x / 10) * 10,
+        y: Math.floor(point.y / 10) * 10,
+      };
+
       client().send('createBuildingFrame', {
         position,
         building: gameState.cursor.meta.building,
       });
       gameState.setCursorMode('default');
     } else {
+      const position = {
+        x: Math.round(point.x),
+        y: Math.round(point.y),
+      };
+
       client().send('moveTo', {
         position,
       });

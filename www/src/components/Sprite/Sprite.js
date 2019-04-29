@@ -5,6 +5,7 @@ import './Sprite.scss';
 
 import gameState from '../../gameState';
 import ChatMessage from '../ChatMessage';
+import { center } from '../../utils/coords';
 
 const BASE_CELL_SIZE = 11;
 
@@ -18,28 +19,15 @@ const offsets = {
 export default function Sprite({ data }) {
   const {
     type,
-    position,
     chatMessage,
     playerName,
     isFixed,
     noAction,
     opacity,
+    size,
   } = data;
 
-  const size = data.size || { x: 2, y: 2 };
-
-  const centerPosition = {
-    x: position.x,
-    y: position.y,
-  };
-
-  if (size.x % 2 !== 0) {
-    centerPosition.x += 5;
-  }
-
-  if (size.y % 2 !== 0) {
-    centerPosition.y += 5;
-  }
+  const centerPosition = center(data);
 
   const pos = gameState.getScreenCoords(centerPosition, isFixed);
 
@@ -78,6 +66,10 @@ export default function Sprite({ data }) {
       style={{
         top: pos.y,
         left: pos.x,
+      }}
+      onClick={e => {
+        e.preventDefault();
+        gameState.clickToObject(data);
       }}
     >
       <img

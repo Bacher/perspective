@@ -1,5 +1,9 @@
 import { vec3, mat4 } from 'gl-matrix';
-import gameState from './index';
+
+import { getCollision } from '../utils/coords';
+import { client } from '../utils/Client';
+
+const DEFAULT_SIZE = { x: 2, y: 2 };
 
 export default class GameState {
   constructor() {
@@ -48,6 +52,7 @@ export default class GameState {
         x: 0,
         y: 0,
       },
+      size: DEFAULT_SIZE,
       isFixed: true,
     };
 
@@ -58,6 +63,7 @@ export default class GameState {
         x: 0,
         y: 0,
       },
+      size: DEFAULT_SIZE,
     };
 
     this.sprites = new Map();
@@ -70,13 +76,6 @@ export default class GameState {
         position: {
           x: 0,
           y: 0,
-        },
-      },
-      {
-        position: {
-          x: -150,
-          y: -100,
-          z: 0,
         },
       },
     ];
@@ -261,6 +260,10 @@ export default class GameState {
       const items = chunk.gameObjects.map(obj => {
         obj.chunkId = chunk.id;
 
+        if (!obj.size) {
+          obj.size = DEFAULT_SIZE;
+        }
+
         return [obj.id, obj];
       });
 
@@ -296,6 +299,9 @@ export default class GameState {
           sprite.position = obj.position;
           sprite.chatMessage = obj.chatMessage;
         } else {
+          if (!obj.size) {
+            obj.size = { x: 2, y: 2 };
+          }
           this.sprites.set(obj.id, obj);
         }
       }
@@ -341,8 +347,8 @@ export default class GameState {
   }
 
   setCursorCoords(coords) {
-    gameState.cursor.coords = coords;
-    gameState.cursor.position = gameState.project(coords);
+    this.cursor.coords = coords;
+    this.cursor.position = this.project(coords);
     this.spritesUpdated();
   }
 
@@ -356,5 +362,21 @@ export default class GameState {
     this.cursor.meta = meta || null;
 
     this.spritesUpdated();
+  }
+
+  clickToObject(obj) {
+    const collisionPoint = getCollision(obj, this.position);
+
+    this.drawDot(collisionPoint);
+
+    client().send('moveTo', {
+      position: collisionPoint,
+    });
+  }
+
+  drawDot(position) {
+    this.dots.push({
+      position,
+    });
   }
 }
