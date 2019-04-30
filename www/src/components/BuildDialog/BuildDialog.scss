@@ -3,7 +3,7 @@
   top: 100px;
   left: 100px;
   width: 300px;
-  height: 300px;
+  height: 250px;
   background: #fff;
 
   &__title {
@@ -17,6 +17,8 @@
   &__item {
     display: flex;
     align-items: center;
+    height: 44px;
+    padding: 0 8px;
   }
 
   &__item-title {
@@ -30,5 +32,21 @@
 
   &__current {
     font-weight: bold;
+  }
+
+  &__item-actions {
+    margin-left: 8px;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+  }
+
+  &__build-btn {
+    padding: 8px 12px;
+    font-size: 18px;
   }
 }

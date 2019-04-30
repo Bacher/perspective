@@ -213,6 +213,10 @@ export default class GameState {
     if (this.comp.ground) {
       this.comp.ground.forceUpdate();
     }
+
+    if (this.comp.buildDialog) {
+      this.comp.buildDialog.forceUpdate();
+    }
   }
 
   moveTo({ x, y }) {
@@ -297,8 +301,10 @@ export default class GameState {
         const sprite = this.sprites.get(obj.id);
 
         if (sprite) {
+          sprite.type = obj.type;
           sprite.position = obj.position;
           sprite.chatMessage = obj.chatMessage;
+          sprite.meta = obj.meta;
         } else {
           if (!obj.size) {
             obj.size = { x: 2, y: 2 };
@@ -322,10 +328,21 @@ export default class GameState {
       if (a.x === this.position.x && a.y === this.position.y) {
         this.target.activatePosition = null;
 
-        this.updateUI(ui => ({
-          ...ui,
-          buildDialog: true,
-        }));
+        const { object } = this.target;
+
+        if (object.type === 'building-frame') {
+          this.updateUI(ui => ({
+            ...ui,
+            buildDialog: true,
+          }));
+        }
+
+        if (object.type === 'building-frame:in-progress') {
+          client().send('startBuild', {
+            buildingId: object.id,
+            chunkId: object.chunkId,
+          });
+        }
       }
     }
 

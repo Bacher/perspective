@@ -1,5 +1,6 @@
 .sprite {
   position: absolute;
+  font-style: normal;
 
   &__img {
     display: block;
@@ -25,5 +26,14 @@
     transform: translate(-50%, -100%);
     color: #000;
     background: #fff;
+  }
+
+  &__build-percent {
+    position: absolute;
+    top: 0;
+    font-family: monospace;
+    font-size: 16px;
+    color: #fff;
+    pointer-events: none;
   }
 }

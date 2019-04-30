@@ -8,7 +8,7 @@ export default class PlayerClient {
     this.chunkId = null;
     this.chunksIds = null;
     this.lastPosition = null;
-    this.moveTo = null;
+    this.action = null;
     this.newChunks = new Set();
 
     this.globalState = getGlobalState();
@@ -19,18 +19,32 @@ export default class PlayerClient {
       case 'getCurrentState':
         return this.globalState.getPlayerStateSnapshot(this);
       case 'moveTo':
-        this.moveTo = params.position;
+        this.action = {
+          type: 'moveTo',
+          params,
+        };
         return;
       case 'createBuildingFrame':
         // TODO: Возможно тут стоит дождаться синхронизации тиков с GlobalState
         this.action = {
           type: 'createBuildingFrame',
-          building: params.building,
-          position: params.position,
+          params,
         };
         return;
       case 'chatMessage':
         this.globalState.updateTextFrom(this, params.text);
+        return;
+      case 'putResources':
+        this.globalState.putResources(this, params);
+        return;
+      case 'transformToBuild':
+        this.globalState.transformToBuild(this, params);
+        return;
+      case 'startBuild':
+        this.action = {
+          type: 'build',
+          params,
+        };
         return;
       default:
         throw new Error('Invalid method name');

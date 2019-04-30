@@ -98,7 +98,7 @@ export default class ChunkState {
     callback(obj);
 
     this.updatedObjects.add(obj);
-    // TODO: Нужно условие когда нужно сохранять в БД.
+    this.globalState.markObjectAsUpdated(obj);
   }
 }
 

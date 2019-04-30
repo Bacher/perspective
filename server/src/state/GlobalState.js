@@ -147,62 +147,66 @@ export default class GlobalState {
     }
 
     for (const playerClient of this.playerClients.values()) {
-      if (playerClient.moveTo) {
-        const chunk = this.chunks.get(playerClient.chunkId);
-
-        const playerObject = chunk.gameObjects.get(playerClient.id);
-        const { x, y } = playerObject.position;
-
-        const movement = {
-          x: playerClient.moveTo.x - x,
-          y: playerClient.moveTo.y - y,
-        };
-
-        const len = Math.sqrt(movement.x ** 2 + movement.y ** 2);
-
-        const maxStep = BASE_PLAYER_SPEED * delta;
-
-        let newPos;
-
-        if (len > maxStep) {
-          const factor = maxStep / len;
-
-          newPos = {
-            x: x + movement.x * factor,
-            y: y + movement.y * factor,
-          };
-        } else {
-          newPos = playerClient.moveTo;
-          playerClient.moveTo = null;
-        }
-
-        await chunk.updatePosition(playerObject, newPos);
-
-        // Если изменилась позиция объекта игрока, то надо пересчитать чанки в playerClient
-        playerClient.chunkId = playerObject.chunkId;
-
-        const chunksIds = getAroundChunks(playerObject.chunkId);
-
-        for (const chunkId of chunksIds) {
-          if (!playerClient.chunksIds.includes(chunkId)) {
-            playerClient.newChunks.add(chunkId);
-          }
-        }
-
-        playerClient.chunksIds = chunksIds;
-
-        for (const chunkId of playerClient.chunksIds) {
-          await this.getChunk(chunkId);
-        }
-      }
-
       if (playerClient.action) {
+        const params = playerClient.action.params;
+
         switch (playerClient.action.type) {
-          case 'createBuildingFrame':
-            const { position, building } = playerClient.action;
+          case 'moveTo': {
+            const chunk = this.chunks.get(playerClient.chunkId);
+
+            const playerObject = chunk.gameObjects.get(playerClient.id);
+            const { x, y } = playerObject.position;
+
+            const movement = {
+              x: params.position.x - x,
+              y: params.position.y - y,
+            };
+
+            const len = Math.sqrt(movement.x ** 2 + movement.y ** 2);
+
+            const maxStep = BASE_PLAYER_SPEED * delta;
+
+            let newPos;
+
+            if (len > maxStep) {
+              const factor = maxStep / len;
+
+              newPos = {
+                x: x + movement.x * factor,
+                y: y + movement.y * factor,
+              };
+            } else {
+              newPos = params.position;
+              playerClient.action = null;
+            }
+
+            await chunk.updatePosition(playerObject, newPos);
+
+            // Если изменилась позиция объекта игрока, то надо пересчитать чанки в playerClient
+            playerClient.chunkId = playerObject.chunkId;
+
+            const chunksIds = getAroundChunks(playerObject.chunkId);
+
+            for (const chunkId of chunksIds) {
+              if (!playerClient.chunksIds.includes(chunkId)) {
+                playerClient.newChunks.add(chunkId);
+              }
+            }
+
+            playerClient.chunksIds = chunksIds;
+
+            for (const chunkId of playerClient.chunksIds) {
+              await this.getChunk(chunkId);
+            }
+
+            break;
+          }
+
+          case 'createBuildingFrame': {
+            const { position, building } = params;
             // TODO: Add range check
 
-            const chunkId = positionToChunkId(playerClient.action.position);
+            const chunkId = positionToChunkId(position);
 
             const chunk = this.getChunkForce(chunkId);
 
@@ -216,6 +220,16 @@ export default class GlobalState {
               },
               meta: {
                 building,
+                resources: {
+                  wood: {
+                    have: 0,
+                    need: 100,
+                  },
+                  stone: {
+                    have: 0,
+                    need: 20,
+                  },
+                },
               },
             };
 
@@ -224,6 +238,25 @@ export default class GlobalState {
             this.newObjects.add(obj);
 
             playerClient.action = null;
+
+            break;
+          }
+
+          case 'build': {
+            const chunk = this.getChunkForce(params.chunkId);
+
+            chunk.updateObject(params.buildingId, building => {
+              building.meta.percent += delta / 100;
+
+              if (building.meta.percent >= 1) {
+                building.type = building.meta.building;
+                building.meta = undefined;
+
+                playerClient.action = null;
+              }
+            });
+            break;
+          }
         }
       }
     }
@@ -407,8 +440,10 @@ export default class GlobalState {
               { id: obj.id },
               {
                 $set: {
+                  type: obj.type,
                   chunkId: obj.chunkId,
                   position: obj.position,
+                  meta: obj.meta,
                 },
               }
             )
@@ -428,6 +463,28 @@ export default class GlobalState {
       playerClient,
       type: 'updateText',
       text,
+    });
+  }
+
+  putResources(player, { buildingId, chunkId, resources }) {
+    const chunk = this.getChunkForce(chunkId);
+
+    chunk.updateObject(buildingId, building => {
+      for (const res of resources) {
+        building.meta.resources[res.type].have += res.amount;
+      }
+    });
+  }
+
+  transformToBuild(player, { buildingId, chunkId }) {
+    const chunk = this.getChunkForce(chunkId);
+
+    chunk.updateObject(buildingId, building => {
+      building.type = 'building-frame:in-progress';
+      building.meta = {
+        building: building.meta.building,
+        percent: 0,
+      };
     });
   }
 }

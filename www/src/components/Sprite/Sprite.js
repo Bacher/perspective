@@ -24,6 +24,7 @@ export default function Sprite({ data }) {
     isFixed,
     noAction,
     opacity,
+    meta,
     size,
   } = data;
 
@@ -67,10 +68,14 @@ export default function Sprite({ data }) {
         top: pos.y,
         left: pos.x,
       }}
-      onClick={e => {
-        e.preventDefault();
-        gameState.clickToObject(data);
-      }}
+      onClick={
+        noAction
+          ? null
+          : e => {
+              e.preventDefault();
+              gameState.clickToObject(data);
+            }
+      }
     >
       <img
         className={cn('sprite__img', {
@@ -78,9 +83,12 @@ export default function Sprite({ data }) {
         })}
         alt=""
         title={type}
-        src={`assets/sprites/${type}.png`}
+        src={`assets/sprites/${type.replace(/:.*$/, '')}.png`}
         style={imgStyles}
       />
+      {type === 'building-frame:in-progress'
+        ? renderPercent(meta.percent)
+        : null}
       {playerName && !chatMessage ? (
         <span className="sprite__title">{playerName}</span>
       ) : null}
@@ -89,4 +97,10 @@ export default function Sprite({ data }) {
       ) : null}
     </i>
   );
+}
+
+function renderPercent(percent) {
+  const displayPercent = Math.floor(percent * 100);
+
+  return <span className="sprite__build-percent">{displayPercent}%</span>;
 }
