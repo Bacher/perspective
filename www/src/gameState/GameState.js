@@ -86,6 +86,7 @@ export default class GameState {
       chat: false,
       inventory: false,
       buildMenu: false,
+      buildDialog: false,
     };
 
     this.cursor = {
@@ -315,6 +316,19 @@ export default class GameState {
       }
     }
 
+    if (this.target && this.target.activatePosition) {
+      const a = this.target.activatePosition;
+
+      if (a.x === this.position.x && a.y === this.position.y) {
+        this.target.activatePosition = null;
+
+        this.updateUI(ui => ({
+          ...ui,
+          buildDialog: true,
+        }));
+      }
+    }
+
     this.applyMatrix();
     this.spritesUpdated();
     this.updateCursor();
@@ -367,11 +381,21 @@ export default class GameState {
   clickToObject(obj) {
     const collisionPoint = getCollision(obj, this.position);
 
+    this.target = {
+      object: obj,
+      activatePosition: collisionPoint,
+    };
+
     this.drawDot(collisionPoint);
 
-    client().send('moveTo', {
-      position: collisionPoint,
-    });
+    if (
+      this.position.x !== collisionPoint.x ||
+      this.position.y !== collisionPoint.y
+    ) {
+      client().send('moveTo', {
+        position: collisionPoint,
+      });
+    }
   }
 
   drawDot(position) {

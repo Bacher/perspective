@@ -38,6 +38,8 @@ export default class App extends PureComponent {
       return;
     }
 
+    gameState.target = null;
+
     const canvasCoords = gameState.normalizeCoords({
       x: e.clientX,
       y: e.clientY,
@@ -84,8 +86,10 @@ export default class App extends PureComponent {
           chat: false,
           inventory: false,
           buildMenu: false,
+          buildDialog: false,
         }));
         break;
+
       case 'Enter':
         gameState.updateUI(ui => ({
           ...ui,
@@ -101,6 +105,7 @@ export default class App extends PureComponent {
           }));
         }
         break;
+
       case 'KeyB':
         if (!gameState.ui.chat) {
           gameState.updateUI(ui => ({
@@ -109,6 +114,7 @@ export default class App extends PureComponent {
           }));
         }
         break;
+
       default:
     }
   };
