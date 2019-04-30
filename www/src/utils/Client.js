@@ -13,7 +13,7 @@ export default class Client {
 
   connect() {
     return new Promise((resolve, reject) => {
-      this.ws = new WebSocket('ws://localhost:8080');
+      this.ws = new WebSocket(`ws://${window.location.hostname}:8080`);
 
       this.ws.addEventListener('open', () => {
         resolve();
