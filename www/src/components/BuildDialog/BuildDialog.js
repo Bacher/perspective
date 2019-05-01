@@ -19,35 +19,44 @@ export default class BuildDialog extends PureComponent {
     gameState.comp.buildDialog = null;
   }
 
-  onPutClick = ({ type, have, need }) => {
+  onPutClick = async ({ type, have, need }) => {
     const { object } = this.state;
 
-    client().send('putResources', {
-      buildingId: object.id,
-      chunkId: object.chunkId,
-      resources: [
-        {
-          type,
-          amount: need - have,
-        },
-      ],
-    });
+    try {
+      await client().action('putResources', {
+        buildingId: object.id,
+        chunkId: object.chunkId,
+        resources: [
+          {
+            type,
+            amount: need - have,
+          },
+        ],
+      });
+    } catch (err) {
+      console.error('Action failed:', err);
+    }
   };
 
-  onBuildClick = () => {
+  onBuildClick = async () => {
     const { object } = this.state;
 
-    client().send('transformToBuild', {
-      buildingId: object.id,
-      chunkId: object.chunkId,
-    });
-
-    client().send('startBuild', {
-      buildingId: object.id,
-      chunkId: object.chunkId,
-    });
+    try {
+      await client().action('transformToBuild', {
+        buildingId: object.id,
+        chunkId: object.chunkId,
+      });
+    } catch (err) {
+      console.error('Transform failed:', err);
+      return;
+    }
 
     gameState.toggleDialog('buildDialog', false);
+
+    client().send('build', {
+      buildingId: object.id,
+      chunkId: object.chunkId,
+    });
   };
 
   onCloseClick = () => {
@@ -56,6 +65,14 @@ export default class BuildDialog extends PureComponent {
 
   render() {
     const { object } = this.state;
+
+    if (!object.meta || !object.meta.resources) {
+      setTimeout(() => {
+        gameState.toggleDialog('buildDialog', false);
+      });
+      return null;
+    }
+
     const { resources } = object.meta;
 
     const needs = [];

@@ -318,7 +318,7 @@ export default class GameState {
         }
 
         if (object.type === 'building-frame:in-progress') {
-          client().send('startBuild', {
+          client().send('build', {
             buildingId: object.id,
             chunkId: object.chunkId,
           });

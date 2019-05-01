@@ -177,7 +177,7 @@ export default class GlobalState {
               };
             } else {
               newPos = params.position;
-              playerClient.action = null;
+              playerClient.actionDone();
             }
 
             await chunk.updatePosition(playerObject, newPos);
@@ -237,7 +237,7 @@ export default class GlobalState {
 
             this.newObjects.add(obj);
 
-            playerClient.action = null;
+            playerClient.actionDone();
 
             break;
           }
@@ -252,6 +252,25 @@ export default class GlobalState {
               }
             });
 
+            playerClient.actionDone();
+
+            break;
+          }
+
+          case 'transformToBuild': {
+            const { buildingId, chunkId } = params;
+
+            const chunk = this.getChunkForce(chunkId);
+
+            chunk.updateObject(buildingId, building => {
+              building.type = 'building-frame:in-progress';
+              building.meta = {
+                building: building.meta.building,
+                percent: 0,
+              };
+            });
+
+            playerClient.actionDone();
             break;
           }
 
@@ -265,7 +284,7 @@ export default class GlobalState {
                 building.type = building.meta.building;
                 building.meta = undefined;
 
-                playerClient.action = null;
+                playerClient.actionDone();
               }
             });
             break;
@@ -375,11 +394,30 @@ export default class GlobalState {
         };
       }
 
+      const actionsResults = {
+        done: [],
+        cancel: [],
+      };
+
+      if (playerClient.doneActions.length) {
+        actionsResults.done = playerClient.doneActions;
+        playerClient.doneActions = [];
+      }
+
+      if (playerClient.canceledActions.length) {
+        actionsResults.cancel = playerClient.canceledActions;
+        playerClient.canceledActions = [];
+      }
+
       playerClient
         .send('worldUpdates', {
           position: playerClient.lastPosition,
           chunksIds: playerClient.chunksIds,
           updatedChunks,
+          actionsResults:
+            actionsResults.done || actionsResults.cancel
+              ? actionsResults
+              : undefined,
         })
         .catch(err => {
           console.error('Send event failed:', err);
@@ -476,18 +514,6 @@ export default class GlobalState {
       playerClient,
       type: 'updateText',
       text,
-    });
-  }
-
-  transformToBuild(player, { buildingId, chunkId }) {
-    const chunk = this.getChunkForce(chunkId);
-
-    chunk.updateObject(buildingId, building => {
-      building.type = 'building-frame:in-progress';
-      building.meta = {
-        building: building.meta.building,
-        percent: 0,
-      };
     });
   }
 }

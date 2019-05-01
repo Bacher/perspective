@@ -7,8 +7,10 @@ export default class Client {
     instance = this;
 
     this.lastId = 0;
+    this.lastActionId = 0;
 
     this.waits = new Map();
+    this.actionWaits = new Map();
   }
 
   connect() {
@@ -97,11 +99,57 @@ export default class Client {
   handleRequest(methodName, params) {
     switch (methodName) {
       case 'worldUpdates':
+        if (params.actionsResults) {
+          this.processActionsResults(params.actionsResults);
+        }
+
         gameState.updateWorld(params);
         break;
       default:
         throw new Error(`Invalid method [${methodName}]`);
     }
+  }
+
+  processActionsResults(actionsResults) {
+    for (const action of actionsResults.cancel) {
+      const actionInfo = this.actionWaits.get(action.id);
+
+      if (actionInfo) {
+        actionInfo.reject(new Error('Canceled'));
+      }
+    }
+
+    for (const action of actionsResults.done) {
+      const actionInfo = this.actionWaits.get(action.id);
+
+      if (actionInfo) {
+        actionInfo.resolve(action.result);
+      }
+    }
+  }
+
+  action(methodName, params) {
+    return new Promise((resolve, reject) => {
+      const actionId = ++this.lastActionId;
+
+      const actionInfo = {
+        resolve,
+        reject,
+        timeoutId: null,
+      };
+
+      this.actionWaits.set(actionId, actionInfo);
+
+      actionInfo.timeoutId = setTimeout(() => {
+        this.actionWaits.delete(actionId);
+        reject(new Error('Timeout Error'));
+      }, 5000);
+
+      this.send(methodName, {
+        ...params,
+        actionId,
+      });
+    });
   }
 
   _send(data) {

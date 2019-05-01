@@ -4,7 +4,8 @@ const ACTION_METHODS = [
   'moveTo',
   'createBuildingFrame',
   'putResources',
-  'startBuild',
+  'transformToBuild',
+  'build',
 ];
 
 export default class PlayerClient {
@@ -16,6 +17,8 @@ export default class PlayerClient {
     this.chunksIds = null;
     this.lastPosition = null;
     this.action = null;
+    this.doneActions = [];
+    this.canceledActions = [];
     this.newChunks = new Set();
 
     this.globalState = getGlobalState();
@@ -23,8 +26,13 @@ export default class PlayerClient {
 
   async handleRequest(methodName, params) {
     if (ACTION_METHODS.includes(methodName)) {
+      if (this.action && this.action.id) {
+        this.canceledActions.push(this.action.id);
+      }
+
       this.action = {
         type: methodName,
+        id: params.actionId,
         params,
       };
       return;
@@ -35,9 +43,6 @@ export default class PlayerClient {
         return this.globalState.getPlayerStateSnapshot(this);
       case 'chatMessage':
         this.globalState.updateTextFrom(this, params.text);
-        return;
-      case 'transformToBuild':
-        this.globalState.transformToBuild(this, params);
         return;
       default:
         throw new Error('Invalid method name');
@@ -54,5 +59,16 @@ export default class PlayerClient {
   disconnect() {
     this.con = null;
     this.globalState.disconnectPlayerClient(this);
+  }
+
+  actionDone(result) {
+    if (this.action.id) {
+      this.doneActions.push({
+        id: this.action.id,
+        result,
+      });
+    }
+
+    this.action = null;
   }
 }
