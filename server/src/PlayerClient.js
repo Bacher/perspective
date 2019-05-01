@@ -1,5 +1,12 @@
 import { getGlobalState } from './state/GlobalState';
 
+const ACTION_METHODS = [
+  'moveTo',
+  'createBuildingFrame',
+  'putResources',
+  'startBuild',
+];
+
 export default class PlayerClient {
   constructor(connection, { username }) {
     this.con = connection;
@@ -15,36 +22,22 @@ export default class PlayerClient {
   }
 
   async handleRequest(methodName, params) {
+    if (ACTION_METHODS.includes(methodName)) {
+      this.action = {
+        type: methodName,
+        params,
+      };
+      return;
+    }
+
     switch (methodName) {
       case 'getCurrentState':
         return this.globalState.getPlayerStateSnapshot(this);
-      case 'moveTo':
-        this.action = {
-          type: 'moveTo',
-          params,
-        };
-        return;
-      case 'createBuildingFrame':
-        // TODO: Возможно тут стоит дождаться синхронизации тиков с GlobalState
-        this.action = {
-          type: 'createBuildingFrame',
-          params,
-        };
-        return;
       case 'chatMessage':
         this.globalState.updateTextFrom(this, params.text);
         return;
-      case 'putResources':
-        this.globalState.putResources(this, params);
-        return;
       case 'transformToBuild':
         this.globalState.transformToBuild(this, params);
-        return;
-      case 'startBuild':
-        this.action = {
-          type: 'build',
-          params,
-        };
         return;
       default:
         throw new Error('Invalid method name');

@@ -242,6 +242,19 @@ export default class GlobalState {
             break;
           }
 
+          case 'putResources': {
+            const { buildingId, chunkId, resources } = params;
+            const chunk = this.getChunkForce(chunkId);
+
+            chunk.updateObject(buildingId, building => {
+              for (const res of resources) {
+                building.meta.resources[res.type].have += res.amount;
+              }
+            });
+
+            break;
+          }
+
           case 'build': {
             const chunk = this.getChunkForce(params.chunkId);
 
@@ -463,16 +476,6 @@ export default class GlobalState {
       playerClient,
       type: 'updateText',
       text,
-    });
-  }
-
-  putResources(player, { buildingId, chunkId, resources }) {
-    const chunk = this.getChunkForce(chunkId);
-
-    chunk.updateObject(buildingId, building => {
-      for (const res of resources) {
-        building.meta.resources[res.type].have += res.amount;
-      }
     });
   }
 
