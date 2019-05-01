@@ -3,6 +3,7 @@ import React, { PureComponent } from 'react';
 import './Inventory.scss';
 
 import gameState from '../../gameState';
+import Dialog from '../Dialog';
 
 export default class Inventory extends PureComponent {
   onCloseClick = () => {
@@ -29,20 +30,16 @@ export default class Inventory extends PureComponent {
 
   render() {
     return (
-      <div className="inventory">
-        <div className="inventory__title">
-          <span className="inventory__title-text">Inventory</span>
-          <button
-            className="inventory__title-close"
-            title="close"
-            onClick={this.onCloseClick}
-          />
-        </div>
+      <Dialog
+        className="inventory"
+        title="Inventory"
+        onCloseClick={this.onCloseClick}
+      >
         <ul className="inventory__list">
           {this.renderItem('coal')}
           {this.renderItem('metal')}
         </ul>
-      </div>
+      </Dialog>
     );
   }
 }

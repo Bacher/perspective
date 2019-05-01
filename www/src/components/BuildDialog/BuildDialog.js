@@ -4,6 +4,7 @@ import './BuildDialog.scss';
 
 import gameState from '../../gameState';
 import { client } from '../../utils/Client';
+import Dialog from '../Dialog';
 
 export default class BuildDialog extends PureComponent {
   state = {
@@ -49,6 +50,10 @@ export default class BuildDialog extends PureComponent {
     gameState.updateUI(ui => ({ ...ui, buildDialog: false }));
   };
 
+  onCloseClick = () => {
+    gameState.updateUI(ui => ({ ...ui, buildDialog: false }));
+  };
+
   render() {
     const { object } = this.state;
     const { resources } = object.meta;
@@ -71,8 +76,11 @@ export default class BuildDialog extends PureComponent {
     }
 
     return (
-      <div className="build-dialog">
-        <div className="build-dialog__title">Build Dialog</div>
+      <Dialog
+        className="build-dialog"
+        title="Build Dialog"
+        onCloseClick={this.onCloseClick}
+      >
         <ul className="build-dialog__content">
           {needs.map(need => (
             <li key={need.type} className="build-dialog__item">
@@ -101,7 +109,7 @@ export default class BuildDialog extends PureComponent {
             Build
           </button>
         </div>
-      </div>
+      </Dialog>
     );
   }
 }

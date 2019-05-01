@@ -1,36 +1,4 @@
 .inventory {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #aaa;
-  top: 40px;
-  left: 40px;
-  width: 300px;
-  height: 140px;
-  background: #fff;
-
-  &__title {
-    display: flex;
-    align-items: center;
-    padding: 6px 10px;
-    color: #333;
-    background: #ccc;
-    border-bottom: 1px solid #aaa;
-  }
-
-  &__title-text {
-    flex-grow: 1;
-  }
-
-  &__title-close {
-    flex-shrink: 0;
-    appearance: none;
-    width: 30px;
-    height: 30px;
-    border: none;
-    background: url('/assets/textures/cross.png');
-  }
-
   &__item {
     display: flex;
     align-items: center;
