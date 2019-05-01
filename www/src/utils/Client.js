@@ -111,11 +111,11 @@ export default class Client {
   }
 
   processActionsResults(actionsResults) {
-    for (const action of actionsResults.cancel) {
+    for (const action of actionsResults.fail) {
       const actionInfo = this.actionWaits.get(action.id);
 
       if (actionInfo) {
-        actionInfo.reject(new Error('Canceled'));
+        actionInfo.reject(action.error);
       }
     }
 

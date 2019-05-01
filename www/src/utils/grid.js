@@ -52,13 +52,15 @@ export function drawGrid(ctx, pos) {
   }
 
   ctx.font = '10px Arial';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
   ctx.fillStyle = 'rgba(255,255,255,0.7)';
 
   for (let x = x1; x < x2; x += CHUNK_SIZE) {
     for (let y = y1; y < y2; y += CHUNK_SIZE) {
       const point = gameState.getScreenCoords({ x, y });
 
-      ctx.fillText(`(${x},${y})`, point.x + 2, point.y - 2);
+      ctx.fillText(`(${x},${y})`, point.x + 2, point.y + 2);
 
       const chunkId = positionToChunkId({ x, y });
 

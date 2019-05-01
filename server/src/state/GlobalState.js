@@ -20,6 +20,7 @@ export default class GlobalState {
     this.needSave = new Set();
     this.tickActions = [];
     this.lastGeneratedIndex = 0;
+    this.inventoryChanged = false;
 
     this.lastTick = 0;
   }
@@ -60,6 +61,12 @@ export default class GlobalState {
         position,
         playerName: playerClient.username,
         chunkId: positionToChunkId(position),
+        meta: {},
+        private: {
+          inventory: {
+            wood: 50,
+          },
+        },
       };
 
       await db().gameObjects.insertOne(playerObject);
@@ -89,6 +96,7 @@ export default class GlobalState {
 
     playerClient.chunkId = chunkId;
     playerClient.chunksIds = getAroundChunks(playerClient.chunkId);
+    playerClient.gameObject = playerObject;
 
     this.playerClients.set(playerClient.id, playerClient);
 
@@ -110,6 +118,7 @@ export default class GlobalState {
       chunkId: playerClient.chunkId,
       chunksIds: playerClient.chunksIds,
       position: playerObject.position,
+      inventory: playerObject.private.inventory,
       chunks,
     };
   }
@@ -244,7 +253,31 @@ export default class GlobalState {
 
           case 'putResources': {
             const { buildingId, chunkId, resources } = params;
+            const { inventory } = playerClient.gameObject.private;
+
+            if (
+              resources.some(res => {
+                if (!inventory[res.type] || inventory[res.type] < res.amount) {
+                  return true;
+                }
+              })
+            ) {
+              playerClient.actionError('NOT_ENOUGH');
+              break;
+            }
+
             const chunk = this.getChunkForce(chunkId);
+
+            for (const res of resources) {
+              inventory[res.type] -= res.amount;
+
+              if (inventory[res.type] === 0) {
+                delete inventory[res.type];
+              }
+            }
+
+            playerClient.inventoryChanged = true;
+            this.needSave.add(playerClient.gameObject);
 
             chunk.updateObject(buildingId, building => {
               for (const res of resources) {
@@ -396,7 +429,7 @@ export default class GlobalState {
 
       const actionsResults = {
         done: [],
-        cancel: [],
+        fail: [],
       };
 
       if (playerClient.doneActions.length) {
@@ -404,9 +437,9 @@ export default class GlobalState {
         playerClient.doneActions = [];
       }
 
-      if (playerClient.canceledActions.length) {
-        actionsResults.cancel = playerClient.canceledActions;
-        playerClient.canceledActions = [];
+      if (playerClient.failActions.length) {
+        actionsResults.fail = playerClient.failActions;
+        playerClient.failActions = [];
       }
 
       playerClient
@@ -415,13 +448,18 @@ export default class GlobalState {
           chunksIds: playerClient.chunksIds,
           updatedChunks,
           actionsResults:
-            actionsResults.done || actionsResults.cancel
+            actionsResults.done.length || actionsResults.fail.length
               ? actionsResults
               : undefined,
+          inventory: playerClient.inventoryChanged
+            ? playerClient.gameObject.private.inventory
+            : undefined,
         })
         .catch(err => {
           console.error('Send event failed:', err);
         });
+
+      playerClient.inventoryChanged = false;
     }
   }
 
@@ -495,6 +533,7 @@ export default class GlobalState {
                   chunkId: obj.chunkId,
                   position: obj.position,
                   meta: obj.meta,
+                  private: obj.private,
                 },
               }
             )

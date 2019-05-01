@@ -6,21 +6,29 @@ import gameState from '../../gameState';
 import Dialog from '../Dialog';
 
 export default class Inventory extends PureComponent {
+  componentDidMount() {
+    gameState.comp.inventory = this;
+  }
+
+  componentWillUnmount() {
+    gameState.comp.inventory = null;
+  }
+
   onCloseClick = () => {
     gameState.toggleDialog('inventory', false);
   };
 
-  renderItem(name) {
+  renderItem(type, count) {
     return (
-      <li key={name} className="inventory__item">
+      <li key={type} className="inventory__item">
         <i
           className="inventory__item-icon"
           style={{
-            backgroundImage: `url("assets/textures/${name}.png")`,
+            backgroundImage: `url("assets/textures/${type}.png")`,
           }}
         />
-        <span className="inventory__item-name">{name}</span>
-        <span className="inventory__item-quantity">4</span>
+        <span className="inventory__item-name">{type}</span>
+        <span className="inventory__item-quantity">{count}</span>
       </li>
     );
   }
@@ -33,8 +41,9 @@ export default class Inventory extends PureComponent {
         onCloseClick={this.onCloseClick}
       >
         <ul className="inventory__list">
-          {this.renderItem('coal')}
-          {this.renderItem('metal')}
+          {Object.keys(gameState.inventory).map(type =>
+            this.renderItem(type, gameState.inventory[type])
+          )}
         </ul>
       </Dialog>
     );

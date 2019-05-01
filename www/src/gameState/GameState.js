@@ -240,6 +240,7 @@ export default class GameState {
   applyGameState(gameState) {
     this.playerId = gameState.playerId;
     this.position = gameState.position;
+    this.inventory = gameState.inventory;
     this.chunksIds = gameState.chunksIds;
 
     let sprites = [['player', this.player], ['flag', this.flag]];
@@ -267,6 +268,14 @@ export default class GameState {
 
   updateWorld(data) {
     this.position = data.position;
+
+    if (data.inventory) {
+      this.inventory = data.inventory;
+
+      if (this.comp.inventory) {
+        this.comp.inventory.forceUpdate();
+      }
+    }
 
     const deletedChunks = [];
 

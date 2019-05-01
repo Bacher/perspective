@@ -19,7 +19,7 @@ export default class BuildDialog extends PureComponent {
     gameState.comp.buildDialog = null;
   }
 
-  onPutClick = async ({ type, have, need }) => {
+  onPutClick = async (type, amount) => {
     const { object } = this.state;
 
     try {
@@ -29,7 +29,7 @@ export default class BuildDialog extends PureComponent {
         resources: [
           {
             type,
-            amount: need - have,
+            amount,
           },
         ],
       });
@@ -61,6 +61,31 @@ export default class BuildDialog extends PureComponent {
 
   onCloseClick = () => {
     gameState.toggleDialog('buildDialog', false);
+  };
+
+  renderItem = need => {
+    const have = gameState.inventory[need.type] || 0;
+    const putAmount = Math.min(have, need.need - need.have);
+
+    return (
+      <li key={need.type} className="build-dialog__item">
+        <span className="build-dialog__item-title">{need.type}</span>
+        <span className="build-dialog__item-count">
+          <span className="build-dialog__current">{need.have}</span>/{need.need}
+        </span>
+        <span className="build-dialog__have">({have})</span>
+        {need.have < need.need ? (
+          <span className="build-dialog__item-actions">
+            <button
+              disabled={putAmount === 0}
+              onClick={() => this.onPutClick(need.type, putAmount)}
+            >
+              Put{putAmount ? ` ${putAmount}` : null}
+            </button>
+          </span>
+        ) : null}
+      </li>
+    );
   };
 
   render() {
@@ -98,25 +123,7 @@ export default class BuildDialog extends PureComponent {
         title="Build Dialog"
         onCloseClick={this.onCloseClick}
       >
-        <ul className="build-dialog__content">
-          {needs.map(need => (
-            <li key={need.type} className="build-dialog__item">
-              <span className="build-dialog__item-title">{need.type}</span>
-              <span className="build-dialog__item-count">
-                <span className="build-dialog__current">{need.have}</span>/
-                {need.need}
-              </span>
-              <span className="build-dialog__item-actions">
-                <button
-                  disabled={need.have >= need.need}
-                  onClick={() => this.onPutClick(need)}
-                >
-                  Put
-                </button>
-              </span>
-            </li>
-          ))}
-        </ul>
+        <ul className="build-dialog__content">{needs.map(this.renderItem)}</ul>
         <div className="build-dialog__footer">
           <button
             disabled={!allowBuild}

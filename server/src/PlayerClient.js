@@ -18,7 +18,7 @@ export default class PlayerClient {
     this.lastPosition = null;
     this.action = null;
     this.doneActions = [];
-    this.canceledActions = [];
+    this.failActions = [];
     this.newChunks = new Set();
 
     this.globalState = getGlobalState();
@@ -27,7 +27,10 @@ export default class PlayerClient {
   async handleRequest(methodName, params) {
     if (ACTION_METHODS.includes(methodName)) {
       if (this.action && this.action.id) {
-        this.canceledActions.push(this.action.id);
+        this.failActions.push({
+          id: this.action.id,
+          error: 'CANCEL',
+        });
       }
 
       this.action = {
@@ -66,6 +69,17 @@ export default class PlayerClient {
       this.doneActions.push({
         id: this.action.id,
         result,
+      });
+    }
+
+    this.action = null;
+  }
+
+  actionError(errorType) {
+    if (this.action.id) {
+      this.failActions.push({
+        id: this.action.id,
+        error: errorType,
       });
     }
 
