@@ -84,10 +84,8 @@ export default class App extends PureComponent {
         gameState.updateUI(ui => ({
           ...ui,
           chat: false,
-          inventory: false,
-          buildMenu: false,
-          buildDialog: false,
         }));
+        gameState.hideAllDialogs();
         break;
 
       case 'Enter':
@@ -99,19 +97,13 @@ export default class App extends PureComponent {
 
       case 'KeyI':
         if (!gameState.ui.chat) {
-          gameState.updateUI(ui => ({
-            ...ui,
-            inventory: !ui.inventory,
-          }));
+          gameState.toggleDialog('inventory');
         }
         break;
 
       case 'KeyB':
         if (!gameState.ui.chat) {
-          gameState.updateUI(ui => ({
-            ...ui,
-            buildMenu: !ui.buildMenu,
-          }));
+          gameState.toggleDialog('buildMenu');
         }
         break;
 

@@ -45,6 +45,8 @@ export default class GameState {
 
     this.lastSpriteId = 0;
 
+    this.dialogsOrder = [];
+
     this.player = {
       id: 'player',
       type: 'player',
@@ -84,9 +86,6 @@ export default class GameState {
 
     this.ui = {
       chat: false,
-      inventory: false,
-      buildMenu: false,
-      buildDialog: false,
     };
 
     this.cursor = {
@@ -331,10 +330,7 @@ export default class GameState {
         const { object } = this.target;
 
         if (object.type === 'building-frame') {
-          this.updateUI(ui => ({
-            ...ui,
-            buildDialog: true,
-          }));
+          this.toggleDialog('buildDialog', true);
         }
 
         if (object.type === 'building-frame:in-progress') {
@@ -386,6 +382,37 @@ export default class GameState {
   updateUI(callback) {
     this.ui = callback(this.ui);
     this.comp.ui.forceUpdate();
+  }
+
+  toggleDialog(dialogName, show) {
+    if (arguments.length === 1) {
+      show = !this.dialogsOrder.includes(dialogName);
+    }
+
+    this.dialogsOrder = this.dialogsOrder.filter(name => name !== dialogName);
+
+    if (show) {
+      this.dialogsOrder.push(dialogName);
+    }
+
+    this.comp.dialogs.forceUpdate();
+  }
+
+  popDialogToTop(dialogName) {
+    if (this.dialogsOrder.length) {
+      const index = this.dialogsOrder.indexOf(dialogName);
+
+      if (index !== -1 && index !== this.dialogsOrder.length - 1) {
+        this.dialogsOrder.splice(index, 1);
+        this.dialogsOrder.push(dialogName);
+        this.comp.dialogs.forceUpdate();
+      }
+    }
+  }
+
+  hideAllDialogs() {
+    this.dialogsOrder = [];
+    this.comp.dialogs.forceUpdate();
   }
 
   setCursorMode(mode, meta) {

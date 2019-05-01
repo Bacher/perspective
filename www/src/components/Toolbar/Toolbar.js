@@ -6,10 +6,7 @@ import gameState from '../../gameState';
 
 export default class Toolbar extends PureComponent {
   onBuildClick = () => {
-    gameState.updateUI(ui => ({
-      ...ui,
-      buildMenu: !ui.buildMenu,
-    }));
+    gameState.toggleDialog('buildMenu');
   };
 
   render() {

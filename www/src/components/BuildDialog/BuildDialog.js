@@ -47,11 +47,11 @@ export default class BuildDialog extends PureComponent {
       chunkId: object.chunkId,
     });
 
-    gameState.updateUI(ui => ({ ...ui, buildDialog: false }));
+    gameState.toggleDialog('buildDialog', false);
   };
 
   onCloseClick = () => {
-    gameState.updateUI(ui => ({ ...ui, buildDialog: false }));
+    gameState.toggleDialog('buildDialog', false);
   };
 
   render() {

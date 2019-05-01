@@ -7,10 +7,7 @@ import Dialog from '../Dialog';
 
 export default class BuildMenu extends PureComponent {
   onItemClick = () => {
-    gameState.updateUI(ui => ({
-      ...ui,
-      buildMenu: false,
-    }));
+    gameState.toggleDialog('buildMenu', false);
 
     gameState.setCursorMode('build', {
       building: 'lumber-mill',
@@ -18,10 +15,7 @@ export default class BuildMenu extends PureComponent {
   };
 
   onCloseClick = () => {
-    gameState.updateUI(ui => ({
-      ...ui,
-      buildMenu: false,
-    }));
+    gameState.toggleDialog('buildMenu', false);
   };
 
   render() {

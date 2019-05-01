@@ -7,10 +7,7 @@ import Dialog from '../Dialog';
 
 export default class Inventory extends PureComponent {
   onCloseClick = () => {
-    gameState.updateUI(ui => ({
-      ...ui,
-      inventory: false,
-    }));
+    gameState.toggleDialog('inventory', false);
   };
 
   renderItem(name) {
