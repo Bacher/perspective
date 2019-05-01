@@ -19,8 +19,6 @@ export default class GameState {
     this.angle = 15;
     this.scroll = 0;
 
-    this.isPers = true;
-
     this.playerId = null;
     this.chunksIds = null;
     this.position = {
@@ -34,11 +32,8 @@ export default class GameState {
       zoo: mat4.create(),
       per: mat4.create(),
       cam: mat4.create(),
-      rotI: mat4.create(),
-      traI: mat4.create(),
-      zooI: mat4.create(),
-      perI: mat4.create(),
-      camI: mat4.create(),
+      final: mat4.create(),
+      finalI: mat4.create(),
     };
 
     this.applyMatrix();
@@ -97,58 +92,55 @@ export default class GameState {
   }
 
   applyMatrix() {
+    const m = this.matrixes;
+
     const angle = this.angle + 20 * this.scroll;
 
     mat4.perspective(
-      this.matrixes.per,
+      m.per,
       (75 * Math.PI) / 180,
       this.width / this.height,
       0.1,
       500
     );
 
-    mat4.fromScaling(this.matrixes.cam, [-1, -1, 1]);
+    mat4.fromScaling(m.cam, [-1, -1, 1]);
 
-    mat4.fromXRotation(this.matrixes.rot, (-angle * Math.PI) / 180);
+    mat4.fromXRotation(m.rot, (-angle * Math.PI) / 180);
 
     mat4.fromTranslation(
-      this.matrixes.tra,
+      m.tra,
       vec3.fromValues(-this.position.x, -this.position.y, 0)
     );
 
-    mat4.fromTranslation(
-      this.matrixes.zoo,
-      vec3.fromValues(0, 0, 200 + 100 * this.scroll)
-    );
+    mat4.fromTranslation(m.zoo, vec3.fromValues(0, 0, 200 + 100 * this.scroll));
+
+    m.final = mat4.create();
+
+    mat4.multiply(m.final, m.final, m.per);
+    mat4.multiply(m.final, m.final, m.cam);
+    mat4.multiply(m.final, m.final, m.zoo);
+    mat4.multiply(m.final, m.final, m.rot);
+    mat4.multiply(m.final, m.final, m.tra);
   }
 
   calcInvertMatrix() {
-    mat4.invert(this.matrixes.perI, this.matrixes.per);
-    mat4.invert(this.matrixes.zooI, this.matrixes.zoo);
-    mat4.invert(this.matrixes.rotI, this.matrixes.rot);
-    mat4.invert(this.matrixes.traI, this.matrixes.tra);
-    mat4.invert(this.matrixes.camI, this.matrixes.cam);
+    mat4.invert(this.matrixes.finalI, this.matrixes.final);
   }
 
   getScreenCoords({ x, y, z }, isFixed) {
     const res = vec3.fromValues(x, y, z || 0);
 
-    // const mView = mPer.multiply(mTr).multiply(mRot);
-    if (!isFixed) {
-      vec3.transformMat4(res, res, this.matrixes.tra);
-      vec3.transformMat4(res, res, this.matrixes.rot);
-      vec3.transformMat4(res, res, this.matrixes.zoo);
-    }
-
-    vec3.transformMat4(res, res, this.matrixes.cam);
-
-    if (this.isPers) {
+    if (isFixed) {
+      vec3.transformMat4(res, res, this.matrixes.cam);
       vec3.transformMat4(res, res, this.matrixes.per);
+    } else {
+      vec3.transformMat4(res, res, this.matrixes.final);
     }
 
     return {
-      x: res[0] * (this.isPers ? this.width / 2 : 1) + this.width / 2,
-      y: res[1] * (this.isPers ? this.height / 2 : 1) + this.height / 2,
+      x: (res[0] * this.width) / 2 + this.width / 2,
+      y: (res[1] * this.height) / 2 + this.height / 2,
       z: res[2],
     };
   }
@@ -168,10 +160,8 @@ export default class GameState {
       y: screenCoords.y - this.height / 2,
     };
 
-    if (this.isPers) {
-      point.x /= this.width / 2;
-      point.y /= this.height / 2;
-    }
+    point.x /= this.width / 2;
+    point.y /= this.height / 2;
 
     const r1 = this.projectPoint({ ...point, z: 0.4 });
     const r2 = this.projectPoint({ ...point, z: 0.5 });
@@ -191,13 +181,7 @@ export default class GameState {
   projectPoint(point) {
     const res = vec3.fromValues(point.x, point.y, point.z);
 
-    if (this.isPers) {
-      vec3.transformMat4(res, res, this.matrixes.perI);
-    }
-    vec3.transformMat4(res, res, this.matrixes.camI);
-    vec3.transformMat4(res, res, this.matrixes.zooI);
-    vec3.transformMat4(res, res, this.matrixes.rotI);
-    vec3.transformMat4(res, res, this.matrixes.traI);
+    vec3.transformMat4(res, res, this.matrixes.finalI);
 
     return {
       x: res[0],
