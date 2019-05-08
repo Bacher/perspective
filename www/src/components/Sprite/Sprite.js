@@ -68,14 +68,6 @@ export default function Sprite({ data }) {
         top: pos.y,
         left: pos.x,
       }}
-      onClick={
-        noAction
-          ? null
-          : e => {
-              e.preventDefault();
-              gameState.clickToObject(data);
-            }
-      }
     >
       <img
         className={cn('sprite__img', {
@@ -85,6 +77,14 @@ export default function Sprite({ data }) {
         title={type}
         src={`assets/sprites/${type.replace(/:.*$/, '')}.png`}
         style={imgStyles}
+        onClick={
+          noAction
+            ? null
+            : e => {
+                e.preventDefault();
+                gameState.clickToObject(data);
+              }
+        }
       />
       {type === 'building-frame:in-progress'
         ? renderPercent(meta.percent)

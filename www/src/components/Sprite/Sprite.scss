@@ -1,6 +1,16 @@
 .sprite {
   position: absolute;
   font-style: normal;
+  pointer-events: none;
+
+  & > * {
+    pointer-events: initial;
+  }
+
+  &:hover &__title {
+    color: #000;
+    background: #fff;
+  }
 
   &__img {
     display: block;
@@ -16,16 +26,19 @@
 
   &__title {
     position: absolute;
-    top: 0;
-    left: 50%;
+    top: -16px;
+    max-width: 200px;
     margin-top: -4px;
     padding: 3px 5px;
     border-radius: 2px;
     font-size: 15px;
     font-style: normal;
     transform: translate(-50%, -100%);
-    color: #000;
-    background: #fff;
+    color: rgba(0, 0, 0, 0.75);
+    background: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__build-percent {
