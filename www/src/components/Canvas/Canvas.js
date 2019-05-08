@@ -1,5 +1,6 @@
 import React, { PureComponent, createRef } from 'react';
 
+import BUILDINGS from '../../constants/buildings';
 import gameState from '../../gameState';
 import { drawGrid, drawZone } from '../../utils/grid';
 import { drawDot } from '../../utils/dot';
@@ -25,30 +26,17 @@ export default class Canvas extends PureComponent {
     }
 
     if (gameState.cursor.mode === 'build') {
-      const { meta } = gameState.cursor;
+      const { meta, position } = gameState.cursor;
+      const { size } = BUILDINGS[meta.building];
 
-      let size;
-
-      switch (meta.building) {
-        case 'lumber-mill':
-          size = { x: 5, y: 5 };
-          break;
-        default:
-          console.error(`Invalid building: [${meta.building}]`);
-      }
-
-      if (size) {
-        const { position } = gameState.cursor;
-
-        drawZone(
-          ctx,
-          {
-            x: Math.floor(position.x / 10) * 10,
-            y: Math.floor(position.y / 10) * 10,
-          },
-          size
-        );
-      }
+      drawZone(
+        ctx,
+        {
+          x: Math.floor(position.x / 10) * 10,
+          y: Math.floor(position.y / 10) * 10,
+        },
+        size
+      );
     }
 
     requestAnimationFrame(this.draw);
