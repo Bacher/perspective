@@ -1,26 +1,22 @@
-export function center({ position, size }) {
-  if (!size) {
-    debugger;
-  }
-
-  const centerPosition = {
-    x: position.x,
-    y: position.y,
+export function normalizeBySize(pos, size) {
+  const newPos = {
+    x: Math.floor(pos.x / 10) * 10,
+    y: Math.floor(pos.y / 10) * 10,
   };
 
   if (size.x % 2 !== 0) {
-    centerPosition.x += 5;
+    newPos.x += 5;
   }
 
   if (size.y % 2 !== 0) {
-    centerPosition.y += 5;
+    newPos.y += 5;
   }
 
-  return centerPosition;
+  return newPos;
 }
 
 export function getCollision(obj, p) {
-  const c = center(obj);
+  const c = obj.position;
   const s2 = Math.min(obj.size.x, obj.size.y) * 5 + 5;
 
   const k = (c.y - p.y) / (c.x - p.x);

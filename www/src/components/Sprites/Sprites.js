@@ -2,6 +2,8 @@ import React, { PureComponent } from 'react';
 
 import './Sprites.scss';
 
+import BUILDINGS from '../../constants/buildings';
+import { normalizeBySize } from '../../utils/coords';
 import gameState from '../../gameState';
 import Sprite from '../Sprite';
 
@@ -25,38 +27,19 @@ export default class Sprites extends PureComponent {
   };
 
   render() {
-    let building = null;
+    let buildingSprite = null;
 
     const { cursor } = gameState;
 
     if (cursor.mode === 'build') {
-      const size = {
-        x: 5,
-        y: 5,
-      };
+      const { building } = cursor.meta;
+      const { size } = BUILDINGS[building];
 
-      const position = {
-        x: cursor.position.x / 10,
-        y: cursor.position.y / 10,
-      };
-
-      if (size.x % 2 === 0) {
-        position.x = Math.round(position.x) * 10;
-      } else {
-        position.x = Math.floor(position.x) * 10;
-      }
-
-      if (size.y % 2 === 0) {
-        position.y = Math.round(position.y) * 10;
-      } else {
-        position.y = Math.floor(position.y) * 10;
-      }
-
-      building = (
+      buildingSprite = (
         <Sprite
           data={{
             type: cursor.meta.building,
-            position,
+            position: normalizeBySize(cursor.position, size),
             size,
             noAction: true,
             opacity: 0.7,
@@ -70,7 +53,7 @@ export default class Sprites extends PureComponent {
         {Array.from(gameState.sprites.values()).map(sprite =>
           sprite.isHidden ? null : <Sprite key={sprite.id} data={sprite} />
         )}
-        {building}
+        {buildingSprite}
       </div>
     );
   }

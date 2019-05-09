@@ -5,7 +5,6 @@ import './Sprite.scss';
 
 import gameState from '../../gameState';
 import ChatMessage from '../ChatMessage';
-import { center } from '../../utils/coords';
 
 const BASE_CELL_SIZE = 11;
 
@@ -41,17 +40,15 @@ export default class Sprite extends Component {
       size,
     } = data;
 
-    const centerPosition = center(data);
-
-    const pos = gameState.getScreenCoords(centerPosition, isFixed);
+    const pos = gameState.getScreenCoords(data.position, isFixed);
 
     let scale = 1;
 
     if (!isFixed) {
       const posFar = gameState.getScreenCoords(
         {
-          x: centerPosition.x,
-          y: centerPosition.y - 1,
+          x: data.position.x,
+          y: data.position.y - 1,
         },
         isFixed
       );

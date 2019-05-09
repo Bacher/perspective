@@ -2,8 +2,10 @@ import React, { PureComponent, createRef } from 'react';
 
 import './App.scss';
 
+import BUILDINGS from '../../constants/buildings';
 import gameState from '../../gameState';
 import { client } from '../../utils/Client';
+import { normalizeBySize } from '../../utils/coords';
 import Ground from '../Ground';
 import Canvas from '../Canvas';
 import Sprites from '../Sprites';
@@ -48,14 +50,11 @@ export default class App extends PureComponent {
     const point = gameState.project(canvasCoords);
 
     if (gameState.cursor.mode === 'build') {
-      const position = {
-        x: Math.floor(point.x / 10) * 10,
-        y: Math.floor(point.y / 10) * 10,
-      };
+      const { building } = gameState.cursor.meta;
 
       client().send('createBuildingFrame', {
-        position,
-        building: gameState.cursor.meta.building,
+        position: normalizeBySize(point, BUILDINGS[building].size),
+        building,
       });
       gameState.setCursorMode('default');
     } else {

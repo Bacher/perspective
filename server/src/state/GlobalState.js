@@ -1,3 +1,4 @@
+import BUILDINGS from '../constants/buildings';
 import ChunkState, { formatObject } from './ChunkState';
 import { db } from '../Mongo';
 import { positionToChunkId, getAroundChunks } from '../utils/chunks';
@@ -216,17 +217,13 @@ export default class GlobalState {
             // TODO: Add range check
 
             const chunkId = positionToChunkId(position);
-
             const chunk = this.getChunkForce(chunkId);
 
             const obj = {
               id: generateId(),
               type: 'building-frame',
               position,
-              size: {
-                x: 5,
-                y: 5,
-              },
+              size: BUILDINGS[building].size,
               meta: {
                 building,
                 resources: {

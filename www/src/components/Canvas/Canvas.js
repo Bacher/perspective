@@ -1,11 +1,12 @@
 import React, { PureComponent, createRef } from 'react';
 
+import './Canvas.scss';
+
 import BUILDINGS from '../../constants/buildings';
 import gameState from '../../gameState';
 import { drawGrid, drawZone, drawRadius } from '../../utils/grid';
 import { drawDot } from '../../utils/dot';
-
-import './Canvas.scss';
+import { normalizeBySize } from '../../utils/coords';
 
 export default class Canvas extends PureComponent {
   canvasRef = createRef();
@@ -37,14 +38,7 @@ export default class Canvas extends PureComponent {
       const { meta, position } = gameState.cursor;
       const { size } = BUILDINGS[meta.building];
 
-      drawZone(
-        ctx,
-        {
-          x: Math.floor(position.x / 10) * 10,
-          y: Math.floor(position.y / 10) * 10,
-        },
-        size
-      );
+      drawZone(ctx, normalizeBySize(position, size), size);
     }
 
     requestAnimationFrame(this.draw);

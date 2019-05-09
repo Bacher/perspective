@@ -116,8 +116,8 @@ export function positionToChunkId({ x, y }) {
 
 export function drawZone(ctx, { x, y }, size) {
   const p1 = {
-    x: Math.floor(x - Math.floor(size.x / 2) * 10),
-    y: Math.floor(y - Math.floor(size.y / 2) * 10),
+    x: Math.floor(x - (size.x * 10) / 2),
+    y: Math.floor(y - (size.y * 10) / 2),
   };
 
   const p2 = {
