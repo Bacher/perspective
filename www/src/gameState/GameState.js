@@ -440,4 +440,14 @@ export default class GameState {
       position,
     });
   }
+
+  setHoverObject(obj) {
+    this.hoverObject = obj;
+  }
+
+  resetHoverObject(obj) {
+    if (this.hoverObject && this.hoverObject === obj) {
+      this.hoverObject = null;
+    }
+  }
 }

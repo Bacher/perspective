@@ -3,6 +3,7 @@ export default {
     id: 'home',
     title: 'Home',
     size: { x: 3, y: 3 },
+    radius: 20,
   },
   'lumber-mill': {
     id: 'lumber-mill',

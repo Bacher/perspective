@@ -2,7 +2,7 @@ import React, { PureComponent, createRef } from 'react';
 
 import BUILDINGS from '../../constants/buildings';
 import gameState from '../../gameState';
-import { drawGrid, drawZone } from '../../utils/grid';
+import { drawGrid, drawZone, drawRadius } from '../../utils/grid';
 import { drawDot } from '../../utils/dot';
 
 import './Canvas.scss';
@@ -23,6 +23,14 @@ export default class Canvas extends PureComponent {
 
     for (const dot of gameState.dots) {
       drawDot(ctx, dot);
+    }
+
+    if (gameState.hoverObject) {
+      const info = BUILDINGS[gameState.hoverObject.type];
+
+      if (info && info.radius) {
+        drawRadius(ctx, gameState.hoverObject, info.radius);
+      }
     }
 
     if (gameState.cursor.mode === 'build') {

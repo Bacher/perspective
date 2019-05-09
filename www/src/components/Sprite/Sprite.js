@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import cn from 'classnames';
 
 import './Sprite.scss';
@@ -16,87 +16,103 @@ const offsets = {
   },
 };
 
-export default function Sprite({ data }) {
-  const {
-    type,
-    chatMessage,
-    playerName,
-    isFixed,
-    noAction,
-    opacity,
-    meta,
-    size,
-  } = data;
+export default class Sprite extends Component {
+  onMouseEnter = () => {
+    const { data } = this.props;
+    gameState.setHoverObject(data);
+  };
 
-  const centerPosition = center(data);
+  onMouseLeave = () => {
+    const { data } = this.props;
+    gameState.resetHoverObject(data);
+  };
 
-  const pos = gameState.getScreenCoords(centerPosition, isFixed);
+  render() {
+    const { data } = this.props;
 
-  let scale = 1;
+    const {
+      type,
+      chatMessage,
+      playerName,
+      isFixed,
+      noAction,
+      opacity,
+      meta,
+      size,
+    } = data;
 
-  if (!isFixed) {
-    const posFar = gameState.getScreenCoords(
-      {
-        x: centerPosition.x,
-        y: centerPosition.y - 1,
-      },
-      isFixed
+    const centerPosition = center(data);
+
+    const pos = gameState.getScreenCoords(centerPosition, isFixed);
+
+    let scale = 1;
+
+    if (!isFixed) {
+      const posFar = gameState.getScreenCoords(
+        {
+          x: centerPosition.x,
+          y: centerPosition.y - 1,
+        },
+        isFixed
+      );
+
+      scale = Math.pow(pos.y - posFar.y, 0.7);
+    }
+
+    const offset = offsets[type] || {
+      v: 0.5,
+      h: 0.5,
+    };
+
+    const imgStyles = {
+      width: size.x * BASE_CELL_SIZE * scale,
+      height: size.y * BASE_CELL_SIZE * scale,
+      transform: `translate(-${offset.h * 100}%, -${offset.v * 100}%)`,
+    };
+
+    if (opacity) {
+      imgStyles.opacity = opacity;
+    }
+
+    return (
+      <i
+        className="sprite"
+        style={{
+          top: pos.y,
+          left: pos.x,
+        }}
+        onMouseEnter={this.onMouseEnter}
+        onMouseLeave={this.onMouseLeave}
+      >
+        <img
+          className={cn('sprite__img', {
+            'sprite__img_no-action': noAction,
+          })}
+          alt=""
+          title={type}
+          src={`assets/sprites/${type.replace(/:.*$/, '')}.png`}
+          style={imgStyles}
+          onClick={
+            noAction
+              ? null
+              : e => {
+                  e.preventDefault();
+                  gameState.clickToObject(data);
+                }
+          }
+        />
+        {type === 'building-frame:in-progress'
+          ? renderPercent(meta.percent)
+          : null}
+        {playerName && !chatMessage ? (
+          <span className="sprite__title">{playerName}</span>
+        ) : null}
+        {chatMessage ? (
+          <ChatMessage playerName={playerName} chatMessage={chatMessage} />
+        ) : null}
+      </i>
     );
-
-    scale = Math.pow(pos.y - posFar.y, 0.7);
   }
-
-  const offset = offsets[type] || {
-    v: 0.5,
-    h: 0.5,
-  };
-
-  const imgStyles = {
-    width: size.x * BASE_CELL_SIZE * scale,
-    height: size.y * BASE_CELL_SIZE * scale,
-    transform: `translate(-${offset.h * 100}%, -${offset.v * 100}%)`,
-  };
-
-  if (opacity) {
-    imgStyles.opacity = opacity;
-  }
-
-  return (
-    <i
-      className="sprite"
-      style={{
-        top: pos.y,
-        left: pos.x,
-      }}
-    >
-      <img
-        className={cn('sprite__img', {
-          'sprite__img_no-action': noAction,
-        })}
-        alt=""
-        title={type}
-        src={`assets/sprites/${type.replace(/:.*$/, '')}.png`}
-        style={imgStyles}
-        onClick={
-          noAction
-            ? null
-            : e => {
-                e.preventDefault();
-                gameState.clickToObject(data);
-              }
-        }
-      />
-      {type === 'building-frame:in-progress'
-        ? renderPercent(meta.percent)
-        : null}
-      {playerName && !chatMessage ? (
-        <span className="sprite__title">{playerName}</span>
-      ) : null}
-      {chatMessage ? (
-        <ChatMessage playerName={playerName} chatMessage={chatMessage} />
-      ) : null}
-    </i>
-  );
 }
 
 function renderPercent(percent) {

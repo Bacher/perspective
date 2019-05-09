@@ -147,3 +147,7 @@ export function drawZone(ctx, { x, y }, size) {
   ctx.fill();
   ctx.restore();
 }
+
+export function drawRadius() {
+  // TODO:
+}

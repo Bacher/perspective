@@ -64,7 +64,7 @@ export default class GlobalState {
         meta: {},
         private: {
           inventory: {
-            wood: 50,
+            wood: 5000,
           },
         },
       };
