@@ -148,6 +148,56 @@ export function drawZone(ctx, { x, y }, size) {
   ctx.restore();
 }
 
-export function drawRadius() {
-  // TODO:
+const SLOPE = [2, 4, 5, 6, 6, 7, 7, 7];
+
+export function drawRadius(ctx, obj, radius) {
+  const y1 = obj.position.y - obj.size.y / 2 - radius * 5;
+  const y2 = obj.position.y + obj.size.y / 2 + radius * 5;
+
+  ctx.save();
+  ctx.beginPath();
+
+  let started = false;
+  let prevOffset = 0;
+
+  for (let y = y1, i = 0; y <= y2; y += 10, i++) {
+    let slopeIndex;
+
+    if (i < SLOPE.length) {
+      slopeIndex = i;
+    } else {
+      slopeIndex = 2 * SLOPE.length - i;
+    }
+
+    const offset = SLOPE[slopeIndex] * 10;
+
+    const p0 = gameState.getScreenCoords({
+      x: obj.position.x - prevOffset,
+      y,
+    });
+
+    const p = gameState.getScreenCoords({
+      x: obj.position.x - offset,
+      y,
+    });
+
+    if (started) {
+      ctx.moveTo(p0.x, p0.y);
+      started = true;
+    } else {
+      ctx.lineTo(p0.x, p0.y);
+    }
+
+    ctx.lineTo(p.x, p.y);
+
+    prevOffset = offset;
+  }
+
+  ctx.fillStyle = '#f00';
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // ctx.fillStyle = '#000';
+  // ctx.fillRect(p.x, p.y, 100, 100);
 }
