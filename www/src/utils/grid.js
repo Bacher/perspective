@@ -1,4 +1,5 @@
 import gameState from '../gameState';
+import { getCircleShape } from './radius';
 
 const WORLD_CHUNK_SIZE = 1000;
 const CHUNK_SIZE = 100;
@@ -149,29 +150,28 @@ export function drawZone(ctx, { x, y }, size) {
 }
 
 export function drawRadius(ctx, obj, radius) {
-  const y1 = obj.position.y - obj.size.y * 5 - radius * 10;
-  const y2 = obj.position.y + obj.size.y * 5 + radius * 10;
+  const center = obj.position;
+
+  const points = getCircleShape(radius * 2);
+
+  const coords = points.map(({ x, y }) =>
+    gameState.getScreenCoords({
+      x: center.x + x * 10,
+      y: center.y + y * 10,
+    })
+  );
 
   ctx.save();
   ctx.beginPath();
 
-  let started = false;
-  let prevOffset = 0;
+  ctx.moveTo(coords[0].x, coords[0].y);
 
-  for (let y = y1, i = 0; y <= y2; y += 10, i++) {
-    const p0 = gameState.getScreenCoords({
-      x: obj.position.x - prevOffset,
-      y,
-    });
-
-    ctx.lineTo(p.x, p.y);
+  for (const { x, y } of coords) {
+    ctx.lineTo(x, y);
   }
 
-  ctx.fillStyle = '#f00';
   ctx.closePath();
+  ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
   ctx.fill();
   ctx.restore();
-
-  // ctx.fillStyle = '#000';
-  // ctx.fillRect(p.x, p.y, 100, 100);
 }
