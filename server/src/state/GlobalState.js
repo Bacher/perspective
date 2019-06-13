@@ -18,6 +18,7 @@ export default class GlobalState {
     this.playerClients = new Map();
     this._getStateRequests = [];
     this.newObjects = new Set();
+    this.removedObjects = new Set();
     this.needSave = new Set();
     this.tickActions = [];
     this.lastGeneratedIndex = 0;
@@ -48,7 +49,8 @@ export default class GlobalState {
       username: playerClient.username,
     });
 
-    let playerObject;
+    let playerId = player.gameObjectId;
+    let chunkId = null;
 
     if (!player) {
       const position = {
@@ -56,12 +58,15 @@ export default class GlobalState {
         y: 700,
       };
 
-      playerObject = {
-        id: generateId(),
+      chunkId = positionToChunkId(position);
+      playerId = generateId();
+
+      const playerObject = {
+        id: playerId,
         type: 'player',
         position,
         playerName: playerClient.username,
-        chunkId: positionToChunkId(position),
+        chunkId,
         meta: {},
         private: {
           inventory: {
@@ -72,32 +77,30 @@ export default class GlobalState {
 
       await db().gameObjects.insertOne(playerObject);
 
+      await db().players.insertOne({
+        username: playerClient.username,
+        gameObjectId: playerId,
+      });
+
       const chunk = this.getChunkIfLoaded(playerObject.chunkId);
 
       if (chunk) {
         chunk.addObject(playerObject);
       }
-
-      await db().players.insertOne({
-        username: playerClient.username,
-        gameObjectId: playerObject.id,
-      });
     } else {
-      playerObject = await db().gameObjects.findOne({
-        id: player.gameObjectId,
-      });
+      const playerObject = await db().gameObjects.findOne(
+        {
+          id: player.gameObjectId,
+        },
+        { chunkId: 1 }
+      );
+
+      chunkId = playerObject.chunkId;
     }
 
-    const playerId = playerObject.id;
-    const chunkId = playerObject.chunkId;
-
     playerClient.id = playerId;
-
-    playerClient.lastPosition = playerObject.position;
-
     playerClient.chunkId = chunkId;
     playerClient.chunksIds = getAroundChunks(playerClient.chunkId);
-    playerClient.gameObject = playerObject;
 
     this.playerClients.set(playerClient.id, playerClient);
 
@@ -113,6 +116,9 @@ export default class GlobalState {
         });
       })
     );
+
+    const playerObject = this.getChunkForce(chunkId).gameObjects.get(playerId);
+    playerClient.gameObject = playerObject;
 
     return {
       playerId: playerId,
@@ -141,6 +147,7 @@ export default class GlobalState {
   };
 
   async tick({ tickId, time, delta }) {
+    /*
     const pig = await db().gameObjects.findOne({ type: 'pig' });
 
     if (pig) {
@@ -155,12 +162,13 @@ export default class GlobalState {
         await chunk.updatePosition(pig, position);
       }
     }
+    */
 
     for (const playerClient of this.playerClients.values()) {
       if (playerClient.action) {
-        const params = playerClient.action.params;
+        const { type, params } = playerClient.action;
 
-        switch (playerClient.action.type) {
+        switch (type) {
           case 'moveTo': {
             const chunk = this.chunks.get(playerClient.chunkId);
 
@@ -319,6 +327,36 @@ export default class GlobalState {
             });
             break;
           }
+
+          case 'harvest': {
+            const chunk = this.getChunkForce(playerClient.chunkId);
+
+            chunk.updateObject(playerClient.id, player => {
+              if (
+                player.currentAction &&
+                player.currentAction.targetId === params.objectId
+              ) {
+                player.currentAction.percent += delta / 10;
+
+                if (player.currentAction.percent >= 1) {
+                  player.currentAction = undefined;
+
+                  this.removedObjects.add(params.objectId);
+                  const targetChunk = this.getChunkForce(params.chunkId);
+                  targetChunk.removeObjectById(params.objectId);
+
+                  playerClient.actionDone();
+                }
+              } else {
+                player.currentAction = {
+                  type: 'harvest',
+                  targetId: params.objectId,
+                  percent: 0,
+                };
+              }
+            });
+            break;
+          }
         }
       }
     }
@@ -364,7 +402,7 @@ export default class GlobalState {
   sendUpdates() {
     for (const playerClient of this.playerClients.values()) {
       const updatedChunks = [];
-      let position = null;
+      let playerUpdated = false;
 
       for (const chunkId of playerClient.chunksIds) {
         const chunk = this.getChunkIfLoaded(chunkId);
@@ -387,7 +425,7 @@ export default class GlobalState {
 
         for (const obj of chunk.updatedObjects) {
           if (obj.id === playerClient.id) {
-            position = obj.position;
+            playerUpdated = true;
           } else {
             chunkDiff.updated.push(formatObject(obj));
             hasChanges = true;
@@ -408,20 +446,8 @@ export default class GlobalState {
         playerClient.newChunks = new Set();
       }
 
-      const { x, y } = playerClient.lastPosition;
-
-      if (
-        updatedChunks.length === 0 &&
-        (!position || (position.x === x && position.y === y))
-      ) {
+      if (updatedChunks.length === 0 && !playerUpdated) {
         return;
-      }
-
-      if (position) {
-        playerClient.lastPosition = {
-          x: position.x,
-          y: position.y,
-        };
       }
 
       const actionsResults = {
@@ -441,9 +467,10 @@ export default class GlobalState {
 
       playerClient
         .send('worldUpdates', {
-          position: playerClient.lastPosition,
+          position: playerClient.gameObject.position,
           chunksIds: playerClient.chunksIds,
           updatedChunks,
+          currentAction: playerClient.gameObject.currentAction,
           actionsResults:
             actionsResults.done.length || actionsResults.fail.length
               ? actionsResults
@@ -515,6 +542,15 @@ export default class GlobalState {
       await Promise.all(
         Array.from(this.newObjects).map(obj => db().gameObjects.insertOne(obj))
       );
+    }
+
+    if (this.removedObjects.size) {
+      await Promise.all(
+        Array.from(this.removedObjects).map(id =>
+          db().gameObjects.deleteOne({ id })
+        )
+      );
+      this.removedObjects = new Set();
     }
 
     if (this.needSave.size) {

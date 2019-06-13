@@ -304,6 +304,10 @@ export default class GameState {
           this.sprites.set(obj.id, obj);
         }
       }
+
+      for (const objId of chunk.removed) {
+        this.sprites.delete(objId);
+      }
     }
 
     if (deletedChunks.length) {
@@ -329,6 +333,13 @@ export default class GameState {
         if (object.type === 'building-frame:in-progress') {
           client().send('build', {
             buildingId: object.id,
+            chunkId: object.chunkId,
+          });
+        }
+
+        if (object.type === 'tree') {
+          client().send('harvest', {
+            objectId: object.id,
             chunkId: object.chunkId,
           });
         }

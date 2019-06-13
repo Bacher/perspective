@@ -100,6 +100,15 @@ export default class ChunkState {
     this.updatedObjects.add(obj);
     this.globalState.markObjectAsUpdated(obj);
   }
+
+  removeObject(obj) {
+    this.removedObjects.add(obj);
+  }
+
+  removeObjectById(id) {
+    const obj = this.gameObjects.get(id);
+    this.removeObject(obj);
+  }
 }
 
 export function formatObject(obj) {
@@ -110,6 +119,7 @@ export function formatObject(obj) {
     size: obj.size,
     playerName: obj.playerName,
     chatMessage: obj.chatMessage,
+    currentAction: obj.currentAction,
     meta: obj.meta,
   };
 }

@@ -6,6 +6,7 @@ const ACTION_METHODS = [
   'putResources',
   'transformToBuild',
   'build',
+  'harvest',
 ];
 
 export default class PlayerClient {
@@ -15,7 +16,6 @@ export default class PlayerClient {
     this.username = username;
     this.chunkId = null;
     this.chunksIds = null;
-    this.lastPosition = null;
     this.action = null;
     this.doneActions = [];
     this.failActions = [];
