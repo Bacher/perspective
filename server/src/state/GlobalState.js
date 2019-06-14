@@ -23,6 +23,7 @@ export default class GlobalState {
     this.tickActions = [];
     this.lastGeneratedIndex = 0;
     this.inventoryChanged = false;
+    this._lastActionId = 0;
 
     this.lastTick = 0;
   }
@@ -167,6 +168,11 @@ export default class GlobalState {
     for (const playerClient of this.playerClients.values()) {
       if (playerClient.action) {
         const { type, params } = playerClient.action;
+
+        const { currentAction } = playerClient.gameObject;
+        if (currentAction && currentAction.type !== type) {
+          playerClient.gameObject.currentAction = null;
+        }
 
         switch (type) {
           case 'moveTo': {
@@ -334,6 +340,7 @@ export default class GlobalState {
             chunk.updateObject(playerClient.id, player => {
               if (
                 player.currentAction &&
+                player.currentAction.type === 'harvest' &&
                 player.currentAction.targetId === params.objectId
               ) {
                 player.currentAction.percent += delta / 10;
@@ -349,6 +356,7 @@ export default class GlobalState {
                 }
               } else {
                 player.currentAction = {
+                  id: this._getNextUniqActionId(),
                   type: 'harvest',
                   targetId: params.objectId,
                   percent: 0,
@@ -587,6 +595,11 @@ export default class GlobalState {
       type: 'updateText',
       text,
     });
+  }
+
+  _getNextUniqActionId() {
+    this._lastActionId++;
+    return this._lastActionId;
   }
 }
 

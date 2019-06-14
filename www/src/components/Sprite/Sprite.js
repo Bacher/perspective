@@ -38,6 +38,7 @@ export default class Sprite extends Component {
       opacity,
       meta,
       size,
+      effects,
     } = data;
 
     const pos = gameState.getScreenCoords(data.position, isFixed);
@@ -107,9 +108,18 @@ export default class Sprite extends Component {
         {chatMessage ? (
           <ChatMessage playerName={playerName} chatMessage={chatMessage} />
         ) : null}
+        {effects ? effects.map(this.renderEffect) : null}
       </i>
     );
   }
+
+  renderEffect = ({ actionId, type, data }) => {
+    switch (type) {
+      case 'processCircle':
+        return <span key={actionId}>{data.percent}</span>;
+      default:
+    }
+  };
 }
 
 function renderPercent(percent) {

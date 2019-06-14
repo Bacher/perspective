@@ -346,6 +346,48 @@ export default class GameState {
       }
     }
 
+    if (data.currentAction && data.currentAction.type === 'harvest') {
+      const sprite = this.sprites.get(data.currentAction.targetId);
+
+      if (sprite) {
+        if (!sprite.effects) {
+          sprite.effects = [];
+        }
+
+        let effectUpdated = false;
+
+        for (const effect of sprite.effects) {
+          if (effect.actionId === data.currentAction.id) {
+            effect.data.percent = data.currentAction.percent;
+            effectUpdated = true;
+            break;
+          }
+        }
+
+        if (!effectUpdated) {
+          sprite.effects.push({
+            type: 'processCircle',
+            actionId: data.currentAction.id,
+            data: {
+              percent: data.currentAction.percent,
+            },
+          });
+        }
+      }
+    }
+
+    if (this.currentPlayerAction && !data.currentAction) {
+      for (const [, sprite] of this.sprites) {
+        if (sprite.effects && sprite.effects.length) {
+          sprite.effects = sprite.effects.filter(
+            effect => effect.actionId !== this.currentPlayerAction.id
+          );
+        }
+      }
+    }
+
+    this.currentPlayerAction = data.currentAction;
+
     this.applyMatrix();
     this.spritesUpdated();
     this.updateCursor();
