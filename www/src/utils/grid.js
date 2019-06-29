@@ -63,7 +63,11 @@ export function drawGrid(ctx, pos) {
 
       ctx.fillText(`(${x},${y})`, point.x + 2, point.y + 2);
 
-      const chunkId = positionToChunkId({ x, y });
+      const chunkId = positionToChunkId({ x, y }, true);
+
+      if (chunkId === null) {
+        continue;
+      }
 
       const point2 = gameState.getScreenCoords({
         x: x + CHUNK_SIZE / 2,
@@ -104,8 +108,11 @@ function drawLine(ctx, p1, p2, isStrong) {
   }
 }
 
-export function positionToChunkId({ x, y }) {
+export function positionToChunkId({ x, y }, isSafe) {
   if (x < 0 || y < 0) {
+    if (isSafe) {
+      return null;
+    }
     throw new Error(`Invalid position: {x:${x},y:${y}}`);
   }
 
